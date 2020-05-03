@@ -1,0 +1,18 @@
+export interface Package {
+  name: string,
+  from?: string,
+  fromImage?: string,
+  version: string,
+  dependencies?: string[],
+  devDependencies?: string[],
+  mount?: [string, string][],
+  exports?: string[],
+  exportEnv?: [string, string][],
+  docs?: string[],
+  build?: string,
+  install?: string,
+  user?: string,
+  workdir?: string,
+  includeDocs?: boolean,
+  command?: string,
+}

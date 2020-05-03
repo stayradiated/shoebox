@@ -1,0 +1,31 @@
+{
+  "name": "@stayradiated/shoebox",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "clean": "pkg-clean",
+    "build": "pkg-build",
+    "tidy": "pkg-tidy",
+    "start": "node ./dist/index.js"
+  },
+  "dependencies": {
+    "@iarna/toml": "2.2.5",
+    "@thi.ng/dgraph": "1.2.6",
+    "chalk": "4.0.0",
+    "execa": "4.0.0",
+    "handlebars": "4.7.6",
+    "mem": "6.1.0",
+    "multimatch": "4.0.0",
+    "tempy": "0.5.0",
+    "walkdir": "0.4.1",
+    "yargs": "15.3.1"
+  },
+  "devDependencies": {
+    "@stayradiated/pkg": "4.4.0",
+    "@types/yargs": "15.0.4"
+  },
+  "bin": {
+    "shoebox": "./bin/shoebox"
+  }
+}
