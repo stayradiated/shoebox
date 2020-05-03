@@ -316,6 +316,7 @@ const compileDependencies = (
   const installLines = [] as string[]
 
   const lines = dependencies
+    .sort((a, b) => b.name.localeCompare(a.name))
     .map((dependency) => {
       const { name, install, exports = [], docs = [], exportEnv } = dependency
 
