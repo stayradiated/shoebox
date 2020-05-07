@@ -227,40 +227,6 @@ interface CopyOptions {
   dest: string,
 }
 
-interface SmartCopyOptions {
-  from: string,
-  chown?: string,
-  files: Array<string | [string, string]>,
-}
-
-const smartCopy = (options: SmartCopyOptions): CopyOptions[] => {
-  const { from, chown, files } = options
-  const actions = [] as CopyOptions[]
-
-  for (const filePath of files) {
-    const [srcFilePath, destFilePath] =
-      typeof filePath === 'string'
-        ? [filePath, null]
-        : [filePath[0], filePath[1]]
-
-    const dest =
-      destFilePath != null
-        ? destFilePath
-        : srcFilePath.endsWith('/')
-          ? srcFilePath
-          : dirname(srcFilePath) + '/'
-
-    const existingAction = actions.find((action) => action.dest === dest)
-    if (existingAction) {
-      existingAction.src.push(srcFilePath)
-    } else {
-      actions.push({ from, chown, src: [srcFilePath], dest })
-    }
-  }
-
-  return actions
-}
-
 const formatCopy = (actions: CopyOptions[]): string[] => {
   return actions.map((action) => {
     const { from, chown, src, dest } = action
@@ -308,7 +274,7 @@ const squashCopyBuildCommand = (
   baseExportDir: string,
   pkg: Package,
 ): string[] => {
-  if (pkg.exports == null) {
+  if (pkg.exports == null || pkg.exports.length === 0) {
     return []
   }
 
@@ -322,10 +288,6 @@ const squashCopyBuildCommand = (
     } else {
       actions.push({ src: [src], dest })
     }
-  }
-
-  if (actions.length <= 1) {
-    return []
   }
 
   const mkdirs = [] as string[]
@@ -345,16 +307,17 @@ const squashCopyBuildCommand = (
   )
 }
 
-const squashCopyExports = (
+const squashCopyExports = (options: {
+  from: string,
+  chown?: string,
   baseExportDir: string,
-  actions: CopyOptions[],
-): CopyOptions[] => {
-  if (actions.length <= 1) {
-    return actions
-  }
+  files: Array<string | [string, string]>,
+}): CopyOptions[] => {
+  const { from, chown, baseExportDir, files } = options
 
-  const from = actions[0].from
-  const chown = actions[0].chown
+  if (files.length === 0) {
+    return []
+  }
 
   const src = baseExportDir.endsWith('/') ? baseExportDir : baseExportDir + '/'
 
@@ -394,21 +357,22 @@ const compileFooter = (pkg: Package): string[] => {
   return lines
 }
 
-const compileRunCommands = (
-  pkg: Package,
-  resolveBaseExportDir: BaseExportDirResolver,
-): string[] => {
+const compileRunCommands = (pkg: Package): string[] => {
   if (pkg.build == null) {
     return []
   }
   const variables = {
     VERSION: pkg.version,
   }
+  return compileTemplate(pkg.build, variables)
+}
+
+const compileExportCommands = (
+  pkg: Package,
+  resolveBaseExportDir: BaseExportDirResolver,
+): string[] => {
   const baseExportDir = resolveBaseExportDir(pkg)
-  return [
-    ...compileTemplate(pkg.build, variables),
-    ...squashCopyBuildCommand(baseExportDir, pkg),
-  ]
+  return squashCopyBuildCommand(baseExportDir, pkg)
 }
 
 const compileDependencies = (
@@ -423,7 +387,14 @@ const compileDependencies = (
   const lines = dependencies
     .sort((a, b) => b.name.localeCompare(a.name))
     .map((dependency) => {
-      const { name, install, exports = [], docs = [], exportEnv } = dependency
+      const {
+        name,
+        install,
+        includeDocs,
+        exports = [],
+        docs = [],
+        exportEnv,
+      } = dependency
 
       const lines = [] as string[]
 
@@ -431,20 +402,18 @@ const compileDependencies = (
         const user = resolveUser(dependency)
         const baseExportDir = resolveBaseExportDir(dependency)
 
+        const files = includeDocs ? [...docs, ...exports] : exports
+
         lines.push(
           ...formatCopy(
-            squashCopyExports(
+            squashCopyExports({
+              from: name,
+              chown: user,
               baseExportDir,
-              smartCopy({ from: name, chown: user, files: exports }),
-            ),
+              files,
+            }),
           ),
         )
-
-        if (pkg.includeDocs) {
-          lines.push(
-            ...formatCopy(smartCopy({ from: name, chown: user, files: docs })),
-          )
-        }
 
         if (install) {
           installLines.push(...compileTemplate(install, {}))
@@ -510,7 +479,13 @@ const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => {
   return d
 }
 
-const build = (pkg: Package, resolvePackage: PackageResolver): string => {
+const build = (options: {
+  pkg: Package,
+  resolvePackage: PackageResolver,
+  intermediary: boolean,
+}): string => {
+  const { pkg, resolvePackage, intermediary } = options
+
   const dockerfile: string[] = []
   dockerfile.push(...compileHeader(pkg))
 
@@ -559,7 +534,10 @@ const build = (pkg: Package, resolvePackage: PackageResolver): string => {
       resolveBaseExportDir,
     ),
   )
-  dockerfile.push(...compileRunCommands(pkg, resolveBaseExportDir))
+  dockerfile.push(...compileRunCommands(pkg))
+  if (intermediary) {
+    dockerfile.push(...compileExportCommands(pkg, resolveBaseExportDir))
+  }
   dockerfile.push(...compileFooter(pkg))
 
   return dockerfile.join(NL)
@@ -580,7 +558,8 @@ const buildAll = async (packageName: string) => {
   const dependencies = bigTree.sort()
 
   for (const dependency of dependencies) {
-    dockerfile += await build(dependency, resolvePackage)
+    const intermediary = dependency !== pkg
+    dockerfile += await build({ pkg: dependency, resolvePackage, intermediary })
   }
 
   return dockerfile
