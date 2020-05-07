@@ -8,6 +8,7 @@ export interface Package {
   mount?: [string, string][],
   exports?: string[],
   exportEnv?: [string, string][],
+  baseExportDir?: string,
   docs?: string[],
   build?: string,
   install?: string,

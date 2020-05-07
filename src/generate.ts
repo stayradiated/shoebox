@@ -6,7 +6,7 @@ import { DGraph } from '@thi.ng/dgraph'
 import mem from 'mem'
 import { parse as parseTOML } from '@iarna/toml'
 import { promises as fs } from 'fs'
-import { dirname } from 'path'
+import { dirname, join } from 'path'
 import chalk from 'chalk'
 
 import { Package } from './types'
@@ -155,6 +155,29 @@ const resolveFrom: DependencyResolver = mem((pkg, resolvePackage) => {
   return [resolvePackage(pkg.from)]
 })
 
+type BaseExportDirResolver = (pkg: Package) => string
+
+const createBaseExportDirResolver = (
+  resolvePackage: PackageResolver,
+): BaseExportDirResolver => {
+  const resolveBaseExportDir: BaseExportDirResolver = (pkg) => {
+    if (pkg.baseExportDir != null) {
+      return pkg.baseExportDir
+    }
+
+    if (pkg.from != null) {
+      const parent = resolvePackage(pkg.from)
+      const user = resolveBaseExportDir(parent)
+      if (user != null) {
+        return user
+      }
+    }
+
+    throw new Error(`Could not resolve baseExportDir for ${pkg.name}`)
+  }
+  return resolveBaseExportDir
+}
+
 interface BuildDependencyGraphOptions {
   package: Package,
   getDependencies: DependencyResolver,
@@ -197,30 +220,56 @@ const resolveDependencyTree = (
   return graph
 }
 
-const compileHeader = (pkg: Package): string[] => {
-  const { name, fromImage, from, user, workdir } = pkg
-  const headers = [
-    '\n',
-    `# ${name.toUpperCase()}`,
-    `FROM ${fromImage || from} AS ${name}`,
-  ]
-
-  if (user != null) {
-    headers.push(`USER ${user}`)
-  }
-  if (workdir != null) {
-    headers.push(`WORKDIR ${workdir}`)
-  }
-  return headers
+interface CopyOptions {
+  from?: string,
+  chown?: string,
+  src: string[],
+  dest: string,
 }
 
-const compileFooter = (pkg: Package): string[] => {
-  const { command } = pkg
-  const lines = [] as string[]
-  if (command != null) {
-    lines.push(`CMD ${command}`)
+interface SmartCopyOptions {
+  from: string,
+  chown?: string,
+  files: Array<string | [string, string]>,
+}
+
+const smartCopy = (options: SmartCopyOptions): CopyOptions[] => {
+  const { from, chown, files } = options
+  const actions = [] as CopyOptions[]
+
+  for (const filePath of files) {
+    const [srcFilePath, destFilePath] =
+      typeof filePath === 'string'
+        ? [filePath, null]
+        : [filePath[0], filePath[1]]
+
+    const dest =
+      destFilePath != null
+        ? destFilePath
+        : srcFilePath.endsWith('/')
+          ? srcFilePath
+          : dirname(srcFilePath) + '/'
+
+    const existingAction = actions.find((action) => action.dest === dest)
+    if (existingAction) {
+      existingAction.src.push(srcFilePath)
+    } else {
+      actions.push({ from, chown, src: [srcFilePath], dest })
+    }
   }
-  return lines
+
+  return actions
+}
+
+const formatCopy = (actions: CopyOptions[]): string[] => {
+  return actions.map((action) => {
+    const { from, chown, src, dest } = action
+    const SEP = src.length <= 1 ? ' ' : ' \\\n  '
+    const expandedSrc = src.join(SEP)
+    const fromFlag = from == null ? '' : ` --from=${from}`
+    const chownFlag = chown == null ? '' : ` --chown=${chown}`
+    return `COPY${fromFlag}${chownFlag}${SEP}${expandedSrc}${SEP}${dest}`
+  })
 }
 
 const compileTemplate = (
@@ -255,62 +304,118 @@ const compileTemplate = (
     .flat()
 }
 
-const compileRunCommands = (pkg: Package): string[] => {
+const squashCopyBuildCommand = (
+  baseExportDir: string,
+  pkg: Package,
+): string[] => {
+  if (pkg.exports == null) {
+    return []
+  }
+
+  const actions = [] as { src: string[], dest: string }[]
+  for (const srcFilePath of pkg.exports) {
+    const dest = dirname(srcFilePath) + '/'
+    const src = srcFilePath.replace(/\/\s*$/, '')
+    const existingAction = actions.find((action) => action.dest === dest)
+    if (existingAction) {
+      existingAction.src.push(src)
+    } else {
+      actions.push({ src: [src], dest })
+    }
+  }
+
+  if (actions.length <= 1) {
+    return []
+  }
+
+  const mkdirs = [] as string[]
+  const mvs = [] as string[][]
+  for (const action of actions) {
+    const exportDir = join(baseExportDir, action.dest)
+    mkdirs.push(exportDir)
+    mvs.push([...action.src, exportDir])
+  }
+
+  return compileTemplate(
+    `
+      mkdir -p ${mkdirs.join(' ')}
+      ${mvs.map((filePaths) => `mv ${filePaths.join(' ')}`).join('\n')}
+    `,
+    {},
+  )
+}
+
+const squashCopyExports = (
+  baseExportDir: string,
+  actions: CopyOptions[],
+): CopyOptions[] => {
+  if (actions.length <= 1) {
+    return actions
+  }
+
+  const from = actions[0].from
+  const chown = actions[0].chown
+
+  const src = baseExportDir.endsWith('/') ? baseExportDir : baseExportDir + '/'
+
+  return [
+    {
+      from,
+      chown,
+      src: [src],
+      dest: '/',
+    },
+  ]
+}
+
+const compileHeader = (pkg: Package): string[] => {
+  const { name, fromImage, from, user, workdir } = pkg
+  const headers = [
+    '\n',
+    `# ${name.toUpperCase()}`,
+    `FROM ${fromImage || from} AS ${name}`,
+  ]
+
+  if (user != null) {
+    headers.push(`USER ${user}`)
+  }
+  if (workdir != null) {
+    headers.push(`WORKDIR ${workdir}`)
+  }
+  return headers
+}
+
+const compileFooter = (pkg: Package): string[] => {
+  const { command } = pkg
+  const lines = [] as string[]
+  if (command != null) {
+    lines.push(`CMD ${command}`)
+  }
+  return lines
+}
+
+const compileRunCommands = (
+  pkg: Package,
+  resolveBaseExportDir: BaseExportDirResolver,
+): string[] => {
   if (pkg.build == null) {
     return []
   }
   const variables = {
     VERSION: pkg.version,
   }
-  return compileTemplate(pkg.build, variables)
-}
-
-interface CopyOptions {
-  from?: string,
-  chown?: string,
-  src: string[],
-  dest: string,
-}
-
-interface SmartCopyOptions {
-  from: string,
-  chown?: string,
-  files: string[],
-}
-
-const smartCopy = (options: SmartCopyOptions) => {
-  const { from, chown, files } = options
-  const actions = [] as CopyOptions[]
-
-  for (const filePath of files) {
-    const exportDir = filePath.endsWith('/') ? filePath : dirname(filePath)
-    const dest = exportDir.endsWith('/') ? exportDir : exportDir + '/'
-
-    const existingAction = actions.find((action) => action.dest === dest)
-    if (existingAction) {
-      existingAction.src.push(filePath)
-    } else {
-      actions.push({ from, chown, src: [filePath], dest })
-    }
-  }
-
-  return actions
-}
-
-const formatCopy = (actions: CopyOptions[]) => {
-  return actions.map((action) => {
-    const { from, chown, src, dest } = action
-    const expandedSrc = src.join(' \\\n  ')
-    const fromFlag = from == null ? '' : ` --from=${from}`
-    const chownFlag = chown == null ? '' : ` --chown=${chown}`
-    return `COPY${fromFlag}${chownFlag} \\\n  ${expandedSrc} \\\n  ${dest}`
-  })
+  const baseExportDir = resolveBaseExportDir(pkg)
+  return [
+    ...compileTemplate(pkg.build, variables),
+    ...squashCopyBuildCommand(baseExportDir, pkg),
+  ]
 }
 
 const compileDependencies = (
   pkg: Package,
   dependencies: Package[],
   resolveUser: UserResolver,
+  resolveBaseExportDir: BaseExportDirResolver,
 ): string[] => {
   const exportEnvLines = [] as string[]
   const installLines = [] as string[]
@@ -324,9 +429,15 @@ const compileDependencies = (
 
       if (dependency.name !== pkg.from) {
         const user = resolveUser(dependency)
+        const baseExportDir = resolveBaseExportDir(dependency)
 
         lines.push(
-          ...formatCopy(smartCopy({ from: name, chown: user, files: exports })),
+          ...formatCopy(
+            squashCopyExports(
+              baseExportDir,
+              smartCopy({ from: name, chown: user, files: exports }),
+            ),
+          ),
         )
 
         if (pkg.includeDocs) {
@@ -438,11 +549,17 @@ const build = (pkg: Package, resolvePackage: PackageResolver): string => {
       : difference(dependencies, includedDependencies)
 
   const resolveUser = createUserResolver(resolvePackage)
+  const resolveBaseExportDir = createBaseExportDirResolver(resolvePackage)
 
   dockerfile.push(
-    ...compileDependencies(pkg, [...requiredDependencies], resolveUser),
+    ...compileDependencies(
+      pkg,
+      [...requiredDependencies],
+      resolveUser,
+      resolveBaseExportDir,
+    ),
   )
-  dockerfile.push(...compileRunCommands(pkg))
+  dockerfile.push(...compileRunCommands(pkg, resolveBaseExportDir))
   dockerfile.push(...compileFooter(pkg))
 
   return dockerfile.join(NL)

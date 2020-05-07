@@ -13,7 +13,13 @@ interface DockerBuildOptions {
 
 const dockerBuild = async (options: DockerBuildOptions) => {
   const { tag, buildDirectory, verbose } = options
-  const dockerProcess = execa('docker', ['build', '--squash', '-t', tag, buildDirectory])
+  const dockerProcess = execa('docker', [
+    'build',
+    '--squash',
+    '-t',
+    tag,
+    buildDirectory,
+  ])
 
   if (verbose) {
     dockerProcess.stdout.pipe(process.stdout)
