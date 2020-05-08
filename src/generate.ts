@@ -411,7 +411,7 @@ const compileDependencies = (options: {
   const installLines = [] as string[]
 
   const dependencies = [
-    ...new Set([...(pkg.dependencies || []), ...(pkg.devDependencies || [])]),
+    ...new Set([...(pkg.devDependencies || []), ...(pkg.dependencies || [])]),
   ]
 
   const lines = dependencies
