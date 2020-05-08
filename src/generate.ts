@@ -155,6 +155,31 @@ const resolveFrom: DependencyResolver = mem((pkg, resolvePackage) => {
   return [resolvePackage(pkg.from)]
 })
 
+type ExportsResolver = (pkg: Package) => string[]
+
+const createExportsResolver = (
+  resolvePackage: PackageResolver,
+): ExportsResolver => {
+  const resolveExports: ExportsResolver = (pkg) => {
+    const exports = [] as string[]
+
+    if (pkg.exports != null) {
+      exports.push(...pkg.exports)
+    }
+
+    if (pkg.dependencies != null) {
+      pkg.dependencies.map((dependencyName) => {
+        const dependency = resolvePackage(dependencyName)
+        exports.push(...resolveExports(dependency))
+      })
+    }
+
+    return [...new Set(exports)].sort((a, b) => a.localeCompare(b))
+  }
+
+  return resolveExports
+}
+
 type BaseExportDirResolver = (pkg: Package) => string
 
 const createBaseExportDirResolver = (
@@ -272,14 +297,14 @@ const compileTemplate = (
 
 const squashCopyBuildCommand = (
   baseExportDir: string,
-  pkg: Package,
+  exports?: string[],
 ): string[] => {
-  if (pkg.exports == null || pkg.exports.length === 0) {
+  if (exports == null || exports.length === 0) {
     return []
   }
 
   const actions = [] as { src: string[], dest: string }[]
-  for (const srcFilePath of pkg.exports) {
+  for (const srcFilePath of exports) {
     const dest = dirname(srcFilePath) + '/'
     const src = srcFilePath.replace(/\/\s*$/, '')
     const existingAction = actions.find((action) => action.dest === dest)
@@ -311,13 +336,8 @@ const squashCopyExports = (options: {
   from: string,
   chown?: string,
   baseExportDir: string,
-  files: Array<string | [string, string]>,
 }): CopyOptions[] => {
-  const { from, chown, baseExportDir, files } = options
-
-  if (files.length === 0) {
-    return []
-  }
+  const { from, chown, baseExportDir } = options
 
   const src = baseExportDir.endsWith('/') ? baseExportDir : baseExportDir + '/'
 
@@ -367,42 +387,43 @@ const compileRunCommands = (pkg: Package): string[] => {
   return compileTemplate(pkg.build, variables)
 }
 
-const compileExportCommands = (
+const compileExportCommands = (options: {
   pkg: Package,
+  resolveExports: ExportsResolver,
   resolveBaseExportDir: BaseExportDirResolver,
-): string[] => {
+}): string[] => {
+  const { pkg, resolveExports, resolveBaseExportDir } = options
+
   const baseExportDir = resolveBaseExportDir(pkg)
-  return squashCopyBuildCommand(baseExportDir, pkg)
+  const exports = resolveExports(pkg)
+  return squashCopyBuildCommand(baseExportDir, exports)
 }
 
-const compileDependencies = (
+const compileDependencies = (options: {
   pkg: Package,
-  dependencies: Package[],
+  resolvePackage: PackageResolver,
   resolveUser: UserResolver,
   resolveBaseExportDir: BaseExportDirResolver,
-): string[] => {
+}): string[] => {
+  const { pkg, resolvePackage, resolveUser, resolveBaseExportDir } = options
+
   const exportEnvLines = [] as string[]
   const installLines = [] as string[]
 
+  const dependencies = [
+    ...new Set([...(pkg.dependencies || []), ...(pkg.devDependencies || [])]),
+  ]
+
   const lines = dependencies
-    .sort((a, b) => b.name.localeCompare(a.name))
-    .map((dependency) => {
-      const {
-        name,
-        install,
-        includeDocs,
-        exports = [],
-        docs = [],
-        exportEnv,
-      } = dependency
+    .map((dependencyName) => {
+      const dependency = resolvePackage(dependencyName)
+      const { name, install, exportEnv } = dependency
 
       const lines = [] as string[]
 
-      if (dependency.name !== pkg.from) {
+      if (name !== pkg.from) {
         const user = resolveUser(dependency)
         const baseExportDir = resolveBaseExportDir(dependency)
-
-        const files = includeDocs ? [...docs, ...exports] : exports
 
         lines.push(
           ...formatCopy(
@@ -410,7 +431,6 @@ const compileDependencies = (
               from: name,
               chown: user,
               baseExportDir,
-              files,
             }),
           ),
         )
@@ -471,14 +491,6 @@ const createUserResolver = (resolvePackage: PackageResolver): UserResolver => {
   return resolveUser
 }
 
-const difference = <T>(setA: Set<T>, setB: Set<T>): Set<T> => {
-  const d = new Set<T>(setA)
-  for (const elem of setB) {
-    d.delete(elem)
-  }
-  return d
-}
-
 const build = (options: {
   pkg: Package,
   resolvePackage: PackageResolver,
@@ -486,58 +498,31 @@ const build = (options: {
 }): string => {
   const { pkg, resolvePackage, intermediary } = options
 
-  const dockerfile: string[] = []
-  dockerfile.push(...compileHeader(pkg))
-
-  const tree = resolveDependencyTree(pkg, resolveDependencies, resolvePackage)
-  const dependencies = tree.transitiveDependencies(pkg)
-
-  resolveDevDependencies(pkg, resolvePackage).forEach((dependency) => {
-    dependencies.add(dependency)
-    const tree = resolveDependencyTree(
-      dependency,
-      resolveDependencies,
-      resolvePackage,
-    )
-    const devDepDeps = tree.transitiveDependencies(dependency)
-    devDepDeps.forEach((dependency) => {
-      dependencies.add(dependency)
-    })
-  })
-
-  let includedDependencies: Set<Package>
-  if (pkg.from != null) {
-    const from = resolvePackage(pkg.from)
-    dependencies.add(from)
-
-    const fromTree = resolveDependencyTree(
-      from,
-      composeResolvers(resolveFrom, resolveDependencies),
-      resolvePackage,
-    )
-    includedDependencies = fromTree.transitiveDependencies(from)
-  }
-
-  const requiredDependencies =
-    includedDependencies == null
-      ? dependencies
-      : difference(dependencies, includedDependencies)
-
   const resolveUser = createUserResolver(resolvePackage)
+  const resolveExports = createExportsResolver(resolvePackage)
   const resolveBaseExportDir = createBaseExportDirResolver(resolvePackage)
 
+  const dockerfile: string[] = []
+
+  dockerfile.push(...compileHeader(pkg))
+
   dockerfile.push(
-    ...compileDependencies(
+    ...compileDependencies({
       pkg,
-      [...requiredDependencies],
+      resolvePackage,
       resolveUser,
       resolveBaseExportDir,
-    ),
+    }),
   )
+
   dockerfile.push(...compileRunCommands(pkg))
+
   if (intermediary) {
-    dockerfile.push(...compileExportCommands(pkg, resolveBaseExportDir))
+    dockerfile.push(
+      ...compileExportCommands({ pkg, resolveExports, resolveBaseExportDir }),
+    )
   }
+
   dockerfile.push(...compileFooter(pkg))
 
   return dockerfile.join(NL)

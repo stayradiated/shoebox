@@ -9,11 +9,9 @@ export interface Package {
   exports?: string[],
   exportEnv?: [string, string][],
   baseExportDir?: string,
-  docs?: string[],
   build?: string,
   install?: string,
   user?: string,
   workdir?: string,
-  includeDocs?: boolean,
   command?: string,
 }
