@@ -53,9 +53,9 @@ const assertValidPackage = (pkg: Package, filepath: string) => {
   }
 }
 
-const readPackages = mem(
-  async (): Promise<PackageMap> => {
-    const files = await walk.async('.', {
+const readPackages = mem<[string], Promise<PackageMap>, string>(
+  async (directory: string): Promise<PackageMap> => {
+    const files = await walk.async(directory, {
       return_object: true,
       follow_symlinks: true,
       max_depth: 2,
@@ -96,12 +96,12 @@ const readPackages = mem(
 )
 
 const createPackageResolver = (packageMap: PackageMap): PackageResolver => {
-  return (name) => {
+  return mem<[string], Package, string>((name) => {
     if (packageMap.has(name) === false) {
       throw new Error(`Could not resolve package: "${name}"`)
     }
     return packageMap.get(name)
-  }
+  })
 }
 
 type DependencyResolver = (
@@ -121,17 +121,30 @@ const composeResolvers = (
   }
 }
 
-const resolveDependencies: DependencyResolver = mem((pkg, resolvePackage) => {
-  if (pkg == null) {
-    return []
-  }
+const resolveDependencies: DependencyResolver = mem<
+[Package, PackageResolver],
+Package[],
+string
+>(
+  (pkg, resolvePackage) => {
+    if (pkg == null) {
+      return []
+    }
 
-  return (pkg.dependencies || []).map((dependencyName) => {
-    return resolvePackage(dependencyName)
-  })
-})
+    return (pkg.dependencies || []).map((dependencyName) => {
+      return resolvePackage(dependencyName)
+    })
+  },
+  {
+    cacheKey: ([pkg]) => pkg.name,
+  },
+)
 
-const resolveDevDependencies: DependencyResolver = mem(
+const resolveDevDependencies: DependencyResolver = mem<
+[Package, PackageResolver],
+Package[],
+string
+>(
   (pkg, resolvePackage) => {
     if (pkg == null) {
       return []
@@ -141,66 +154,136 @@ const resolveDevDependencies: DependencyResolver = mem(
       return resolvePackage(dependencyName)
     })
   },
+  {
+    cacheKey: ([pkg]) => pkg.name,
+  },
 )
 
-const resolveFrom: DependencyResolver = mem((pkg, resolvePackage) => {
-  if (pkg == null) {
-    return []
-  }
-
-  if (pkg.from == null) {
-    return []
-  }
-
-  return [resolvePackage(pkg.from)]
-})
-
-type ExportsResolver = (pkg: Package) => string[]
-
-const createExportsResolver = (
-  resolvePackage: PackageResolver,
-): ExportsResolver => {
-  const resolveExports: ExportsResolver = (pkg) => {
-    const exports = [] as string[]
-
-    if (pkg.exports != null) {
-      exports.push(...pkg.exports)
+const resolveFrom: DependencyResolver = mem<
+[Package, PackageResolver],
+Package[],
+string
+>(
+  (pkg, resolvePackage) => {
+    if (pkg == null) {
+      return []
     }
 
-    if (pkg.dependencies != null) {
-      pkg.dependencies.map((dependencyName) => {
-        const dependency = resolvePackage(dependencyName)
-        exports.push(...resolveExports(dependency))
-      })
+    if (pkg.from == null) {
+      return []
     }
 
-    return [...new Set(exports)].sort((a, b) => a.localeCompare(b))
-  }
-
-  return resolveExports
-}
+    return [resolvePackage(pkg.from)]
+  },
+  {
+    cacheKey: ([pkg]) => pkg.name,
+  },
+)
 
 type BaseExportDirResolver = (pkg: Package) => string
 
-const createBaseExportDirResolver = (
+const createBaseExportDirResolver = (options: {
   resolvePackage: PackageResolver,
-): BaseExportDirResolver => {
-  const resolveBaseExportDir: BaseExportDirResolver = (pkg) => {
-    if (pkg.baseExportDir != null) {
-      return pkg.baseExportDir
-    }
+}): BaseExportDirResolver => {
+  const { resolvePackage } = options
 
-    if (pkg.from != null) {
-      const parent = resolvePackage(pkg.from)
-      const user = resolveBaseExportDir(parent)
-      if (user != null) {
-        return user
+  const resolveBaseExportDir: BaseExportDirResolver = mem<
+  [Package],
+  string,
+  string
+  >(
+    (pkg) => {
+      if (pkg.baseExportDir != null) {
+        return pkg.baseExportDir
       }
-    }
 
-    throw new Error(`Could not resolve baseExportDir for ${pkg.name}`)
-  }
+      if (pkg.from != null) {
+        const parent = resolvePackage(pkg.from)
+        const user = resolveBaseExportDir(parent)
+        if (user != null) {
+          return user
+        }
+      }
+
+      throw new Error(`Could not resolve baseExportDir for ${pkg.name}`)
+    },
+    {
+      cacheKey: ([pkg]) => pkg.name,
+    },
+  )
   return resolveBaseExportDir
+}
+
+type Export = {
+  user: string,
+  exports: {
+    baseExportDir: string,
+    filePaths: string[],
+  }[],
+}
+
+type ExportsResolver = (pkg: Package) => Export[]
+
+const appendExports = (a: Export[], b: Export[]): Export[] => {
+  for (const b1 of b) {
+    const a1 = a.find((x) => x.user === b1.user)
+    if (a1 != null) {
+      for (const b2 of b1.exports) {
+        const a2 = a1.exports.find((x) => x.baseExportDir === b2.baseExportDir)
+        if (a2 != null) {
+          a2.filePaths = [
+            ...new Set([...a2.filePaths, ...b2.filePaths]),
+          ].sort((a, b) => a.localeCompare(b))
+        } else {
+          a1.exports.push(b2)
+        }
+      }
+    } else {
+      a.push(b1)
+    }
+  }
+
+  return a
+}
+
+const createExportsResolver = (options: {
+  resolvePackage: PackageResolver,
+  resolveUser: UserResolver,
+  resolveBaseExportDir: BaseExportDirResolver,
+}): ExportsResolver => {
+  const { resolvePackage, resolveUser, resolveBaseExportDir } = options
+
+  const resolveExports: ExportsResolver = mem<[Package], Export[], string>(
+    (pkg) => {
+      const exports = [] as Export[]
+
+      if (pkg.exports != null) {
+        exports.push({
+          user: resolveUser(pkg),
+          exports: [
+            {
+              baseExportDir: resolveBaseExportDir(pkg),
+              filePaths: pkg.exports,
+            },
+          ],
+        })
+      }
+
+      if (pkg.dependencies != null) {
+        pkg.dependencies.map((dependencyName) => {
+          const dependency = resolvePackage(dependencyName)
+          appendExports(exports, resolveExports(dependency))
+        })
+      }
+
+      return exports
+    },
+    {
+      cacheKey: ([pkg]) => pkg.name,
+    },
+  )
+
+  return resolveExports
 }
 
 interface BuildDependencyGraphOptions {
@@ -258,7 +341,8 @@ const formatCopy = (actions: CopyOptions[]): string[] => {
     const SEP = src.length <= 1 ? ' ' : ' \\\n  '
     const expandedSrc = src.join(SEP)
     const fromFlag = from == null ? '' : ` --from=${from}`
-    const chownFlag = chown == null ? '' : ` --chown=${chown}`
+    const chownFlag =
+      chown == null || chown === 'root' ? '' : ` --chown=${chown}`
     return `COPY${fromFlag}${chownFlag}${SEP}${expandedSrc}${SEP}${dest}`
   })
 }
@@ -295,60 +379,82 @@ const compileTemplate = (
     .flat()
 }
 
-const squashCopyBuildCommand = (
-  baseExportDir: string,
-  exports?: string[],
-): string[] => {
-  if (exports == null || exports.length === 0) {
+const squashCopyBuildCommand = (options: {
+  initialUser: string,
+  exports?: Export[],
+}): string[] => {
+  const { initialUser, exports } = options
+
+  if (exports == null) {
     return []
   }
 
-  const actions = [] as { src: string[], dest: string }[]
-  for (const srcFilePath of exports) {
-    const dest = dirname(srcFilePath) + '/'
-    const src = srcFilePath.replace(/\/\s*$/, '')
-    const existingAction = actions.find((action) => action.dest === dest)
-    if (existingAction) {
-      existingAction.src.push(src)
-    } else {
-      actions.push({ src: [src], dest })
-    }
-  }
+  return exports
+    .map(({ user, exports }) => {
+      const commands = exports
+        .map(({ baseExportDir, filePaths }) => {
+          const actions = [] as { src: string[], dest: string }[]
+          for (const srcFilePath of filePaths) {
+            const dest = dirname(srcFilePath) + '/'
+            const src = srcFilePath.replace(/\/\s*$/, '')
+            const existingAction = actions.find(
+              (action) => action.dest === dest,
+            )
+            if (existingAction) {
+              existingAction.src.push(src)
+            } else {
+              actions.push({ src: [src], dest })
+            }
+          }
 
-  const mkdirs = [] as string[]
-  const mvs = [] as string[][]
-  for (const action of actions) {
-    const exportDir = join(baseExportDir, action.dest)
-    mkdirs.push(exportDir)
-    mvs.push([...action.src, exportDir])
-  }
+          const mkdirs = [] as string[]
+          const mvs = [] as string[][]
+          for (const action of actions) {
+            const exportDir = join(baseExportDir, action.dest)
+            mkdirs.push(exportDir)
+            mvs.push([...action.src, exportDir])
+          }
 
-  return compileTemplate(
-    `
-      mkdir -p ${mkdirs.join(' ')}
-      ${mvs.map((filePaths) => `mv ${filePaths.join(' ')}`).join('\n')}
-    `,
-    {},
-  )
+          const template = [
+            `mkdir -p ${mkdirs.join(' ')}`,
+            ...mvs.map((filePaths) => `mv ${filePaths.join(' ')}`),
+          ].join('\n')
+
+          return compileTemplate(template, {})
+        })
+        .flat()
+
+      if (user !== initialUser) {
+        commands.unshift(`USER ${user || 'root'}`)
+      }
+
+      return commands
+    })
+    .flat()
 }
 
 const squashCopyExports = (options: {
   from: string,
-  chown?: string,
-  baseExportDir: string,
+  exports: Export[],
 }): CopyOptions[] => {
-  const { from, chown, baseExportDir } = options
+  const { from, exports } = options
 
-  const src = baseExportDir.endsWith('/') ? baseExportDir : baseExportDir + '/'
+  return exports
+    .map(({ user, exports }) => {
+      return exports.map(({ baseExportDir }) => {
+        const src = baseExportDir.endsWith('/')
+          ? baseExportDir
+          : baseExportDir + '/'
 
-  return [
-    {
-      from,
-      chown,
-      src: [src],
-      dest: '/',
-    },
-  ]
+        return {
+          from,
+          chown: user,
+          src: [src],
+          dest: '/',
+        }
+      })
+    })
+    .flat()
 }
 
 const compileHeader = (pkg: Package): string[] => {
@@ -377,6 +483,20 @@ const compileFooter = (pkg: Package): string[] => {
   return lines
 }
 
+const compileEnv = (pkg: Package): string[] => {
+  if (pkg.env == null || pkg.env.length === 0) {
+    return []
+  }
+
+  const env = pkg.env
+    .map(([key, value]) => {
+      return `${key}=${value.replace(/\s/g, '\\ ')}`
+    })
+    .join(' \\\n  ')
+
+  return [`ENV \\\n  ${env}`]
+}
+
 const compileRunCommands = (pkg: Package): string[] => {
   if (pkg.build == null) {
     return []
@@ -389,23 +509,22 @@ const compileRunCommands = (pkg: Package): string[] => {
 
 const compileExportCommands = (options: {
   pkg: Package,
+  resolveUser: UserResolver,
   resolveExports: ExportsResolver,
-  resolveBaseExportDir: BaseExportDirResolver,
 }): string[] => {
-  const { pkg, resolveExports, resolveBaseExportDir } = options
+  const { pkg, resolveUser, resolveExports } = options
 
-  const baseExportDir = resolveBaseExportDir(pkg)
+  const initialUser = resolveUser(pkg)
   const exports = resolveExports(pkg)
-  return squashCopyBuildCommand(baseExportDir, exports)
+  return squashCopyBuildCommand({ initialUser, exports })
 }
 
 const compileDependencies = (options: {
   pkg: Package,
   resolvePackage: PackageResolver,
-  resolveUser: UserResolver,
-  resolveBaseExportDir: BaseExportDirResolver,
+  resolveExports: ExportsResolver,
 }): string[] => {
-  const { pkg, resolvePackage, resolveUser, resolveBaseExportDir } = options
+  const { pkg, resolvePackage, resolveExports } = options
 
   const exportEnvLines = [] as string[]
   const installLines = [] as string[]
@@ -422,15 +541,11 @@ const compileDependencies = (options: {
       const lines = [] as string[]
 
       if (name !== pkg.from) {
-        const user = resolveUser(dependency)
-        const baseExportDir = resolveBaseExportDir(dependency)
-
         lines.push(
           ...formatCopy(
             squashCopyExports({
               from: name,
-              chown: user,
-              baseExportDir,
+              exports: resolveExports(dependency),
             }),
           ),
         )
@@ -472,35 +587,48 @@ const compileDependencies = (options: {
 
 type UserResolver = (pkg: Package) => string
 
-const createUserResolver = (resolvePackage: PackageResolver): UserResolver => {
-  const resolveUser: UserResolver = (pkg) => {
-    if (pkg.user != null) {
-      return pkg.user
-    }
+const createUserResolver = (options: {
+  resolvePackage: PackageResolver,
+}): UserResolver => {
+  const { resolvePackage } = options
 
-    if (pkg.from != null) {
-      const parent = resolvePackage(pkg.from)
-      const user = resolveUser(parent)
-      if (user != null) {
-        return user
+  const resolveUser: UserResolver = mem<[Package], string, string>(
+    (pkg) => {
+      if (pkg.user != null) {
+        return pkg.user
       }
-    }
 
-    return null
-  }
+      if (pkg.from != null) {
+        const parent = resolvePackage(pkg.from)
+        const user = resolveUser(parent)
+        if (user != null) {
+          return user
+        }
+      }
+
+      return null
+    },
+    {
+      cacheKey: ([pkg]) => pkg.name,
+    },
+  )
   return resolveUser
 }
 
 const build = (options: {
   pkg: Package,
   resolvePackage: PackageResolver,
-  intermediary: boolean,
+  withExports: boolean,
 }): string => {
-  const { pkg, resolvePackage, intermediary } = options
+  const { pkg, resolvePackage, withExports } = options
 
-  const resolveUser = createUserResolver(resolvePackage)
-  const resolveExports = createExportsResolver(resolvePackage)
-  const resolveBaseExportDir = createBaseExportDirResolver(resolvePackage)
+  const resolveUser = createUserResolver({ resolvePackage })
+  const resolveBaseExportDir = createBaseExportDirResolver({ resolvePackage })
+  const resolveExports = createExportsResolver({
+    resolvePackage,
+    resolveUser,
+    resolveBaseExportDir,
+  })
 
   const dockerfile: string[] = []
 
@@ -510,16 +638,17 @@ const build = (options: {
     ...compileDependencies({
       pkg,
       resolvePackage,
-      resolveUser,
-      resolveBaseExportDir,
+      resolveExports,
     }),
   )
 
+  dockerfile.push(...compileEnv(pkg))
+
   dockerfile.push(...compileRunCommands(pkg))
 
-  if (intermediary) {
+  if (withExports) {
     dockerfile.push(
-      ...compileExportCommands({ pkg, resolveExports, resolveBaseExportDir }),
+      ...compileExportCommands({ pkg, resolveUser, resolveExports }),
     )
   }
 
@@ -529,22 +658,49 @@ const build = (options: {
 }
 
 const buildAll = async (packageName: string) => {
-  const packageMap = await readPackages()
+  const packageMap = await readPackages('.')
   const resolvePackage = createPackageResolver(packageMap)
   const pkg = resolvePackage(packageName)
 
-  let dockerfile = ''
-
-  const bigTree = resolveDependencyTree(
+  const tree = resolveDependencyTree(
     pkg,
     composeResolvers(resolveFrom, resolveDevDependencies, resolveDependencies),
     resolvePackage,
   )
-  const dependencies = bigTree.sort()
+
+  const dependencies = tree.sort()
+
+  let dockerfile = ''
 
   for (const dependency of dependencies) {
-    const intermediary = dependency !== pkg
-    dockerfile += await build({ pkg: dependency, resolvePackage, intermediary })
+    const parents = tree.immediateDependents(dependency)
+
+    let isInheritedFrom = false
+    let isDependendOn = false
+    for (const parent of parents) {
+      if (parent.from === dependency.name) {
+        isInheritedFrom = true
+      }
+      const parentDependencies = [
+        ...(parent.dependencies || []),
+        ...(parent.devDependencies || []),
+      ]
+      if (parentDependencies.includes(dependency.name)) {
+        isDependendOn = true
+      }
+    }
+
+    if (isInheritedFrom && isDependendOn) {
+      throw new Error(
+        `Package ${dependency.name} is both inherited and depended on`,
+      )
+    }
+
+    dockerfile += await build({
+      pkg: dependency,
+      resolvePackage,
+      withExports: isDependendOn,
+    })
   }
 
   return dockerfile
