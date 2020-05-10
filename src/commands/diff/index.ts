@@ -26,6 +26,11 @@ export const builder = {
     describe: 'path of the build directory',
     type: 'string',
   },
+  verbose: {
+    alias: 'v',
+    describe: 'display docker build info',
+    type: 'boolean',
+  },
 }
 
 interface Options {
@@ -34,16 +39,18 @@ interface Options {
   exclude?: string[],
   expand?: string[],
   buildDir?: string,
+  verbose?: boolean,
 }
 
 export const handler = async (argv: Options) => {
-  const { packageA, packageB, exclude, expand, buildDir } = argv
+  const { packageA, packageB, exclude, expand, buildDir, verbose } = argv
   const list = await diff({
     packageA,
     packageB,
     exclude,
     expand,
     buildDirectory: buildDir,
+    verbose,
   })
   console.log(JSON.stringify(list, null, 2))
 }

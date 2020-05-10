@@ -106,13 +106,21 @@ interface DiffOptions {
   exclude?: string[],
   expand?: string[],
   buildDirectory?: string,
+  verbose?: boolean,
 }
 
 const diff = async (options: DiffOptions) => {
-  const { packageA, packageB, exclude, expand = [], buildDirectory } = options
+  const {
+    packageA,
+    packageB,
+    exclude,
+    expand = [],
+    buildDirectory,
+    verbose,
+  } = options
 
-  const { tag: tagA } = await build({ name: packageA, buildDirectory })
-  const { tag: tagB } = await build({ name: packageB, buildDirectory })
+  const { tag: tagA } = await build({ name: packageA, buildDirectory, verbose })
+  const { tag: tagB } = await build({ name: packageB, buildDirectory, verbose })
 
   const result = await containerDiff({ tagA, tagB, expand })
 
