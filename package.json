@@ -11,9 +11,9 @@
   },
   "dependencies": {
     "@iarna/toml": "2.2.5",
-    "@thi.ng/dgraph": "1.2.7",
-    "chalk": "4.0.0",
-    "execa": "4.0.1",
+    "@thi.ng/dgraph": "1.2.13",
+    "chalk": "4.1.0",
+    "execa": "4.0.2",
     "handlebars": "4.7.6",
     "mem": "6.1.0",
     "multimatch": "4.0.0",
@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@stayradiated/pkg": "4.4.0",
-    "@types/yargs": "15.0.4"
+    "@types/yargs": "15.0.5"
   },
   "bin": {
     "shoebox": "./bin/shoebox"
