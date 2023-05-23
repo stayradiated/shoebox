@@ -10,8 +10,8 @@ const getVersion = async (name: string): Promise<string> => {
   const response = await undici.fetch(`https://pypi.org/pypi/${name}/json`)
   const result = (await response.json()) as Root
   const versions = Object.keys(result.releases).sort(flexver).reverse()
-  console.log(versions)
-  return '0.0.0'
+  const latestVersion = versions[0]
+  return latestVersion ?? '?.?.?'
 }
 
 const templateFn: TemplateFn = async (options) => {
@@ -22,9 +22,12 @@ const templateFn: TemplateFn = async (options) => {
     name,
     from: 'base',
     version,
-    devDependencies: ['apteryx'],
-    build: `apteryx ${name}='{{VERSION}}'\n`,
-    exports: [],
+    devDependencies: ['python3-pip', 'pipx'],
+    build: `pipx install ${name}=='{{VERSION}}'\n`,
+    exports: [
+      `/usr/local/bin/${name}`,
+      '/usr/local/pipx/'
+    ],
   }
 }
 
