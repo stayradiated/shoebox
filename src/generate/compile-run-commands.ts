@@ -7,7 +7,7 @@ const compileRunCommands = (pkg: Package): string[] => {
   }
 
   const variables = {
-    VERSION: pkg.version,
+    VERSION: pkg.version ?? '',
   }
   return compileTemplate(pkg.build, variables)
 }

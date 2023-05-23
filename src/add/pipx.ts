@@ -24,10 +24,7 @@ const templateFn: TemplateFn = async (options) => {
     version,
     devDependencies: ['python3-pip', 'pipx'],
     build: `pipx install ${name}=='{{VERSION}}'\n`,
-    exports: [
-      `/usr/local/bin/${name}`,
-      '/usr/local/pipx/'
-    ],
+    exports: [`/usr/local/bin/${name}`, '/usr/local/pipx/'],
   }
 }
 

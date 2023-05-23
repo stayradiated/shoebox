@@ -1,5 +1,5 @@
 import { promises as fs } from 'node:fs'
-import * as walk from 'walkdir'
+import walk from 'walkdir'
 import mem from 'mem'
 import { parse as parseTOML } from '@iarna/toml'
 import chalk from 'chalk'

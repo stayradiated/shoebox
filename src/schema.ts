@@ -15,6 +15,6 @@ export const $Package = z.object({
   mount: z.array(z.tuple([z.string(), z.string()])).optional(),
   name: z.string(),
   user: z.string().optional(),
-  version: z.string(),
+  version: z.string().optional(),
   workdir: z.string().optional(),
 })

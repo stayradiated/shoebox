@@ -1,5 +1,5 @@
 import yargs from 'yargs'
-import { hideBin } from 'yargs/helpers'
+import { hideBin } from 'yargs/helpers.mjs'
 import { commands } from './commands/index.js'
 
 yargs(hideBin(process.argv))
