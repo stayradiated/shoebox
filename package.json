@@ -3,29 +3,49 @@
   "version": "1.4.0",
   "main": "index.js",
   "license": "MIT",
+  "type": "module",
   "scripts": {
-    "clean": "pkg-clean",
-    "build": "pkg-build",
-    "tidy": "pkg-tidy",
+    "build": "rm -rf ./dist && tsc",
+    "tidy": "xo --fix",
     "start": "node ./dist/index.js"
   },
   "dependencies": {
     "@iarna/toml": "2.2.5",
-    "@thi.ng/dgraph": "1.2.26",
-    "chalk": "4.1.0",
-    "execa": "4.0.3",
-    "handlebars": "4.7.6",
-    "mem": "6.1.1",
-    "multimatch": "4.0.0",
-    "tempy": "0.7.0",
+    "@thi.ng/dgraph": "2.1.49",
+    "chalk": "5.2.0",
+    "execa": "7.1.1",
+    "flexver": "1.1.0",
+    "handlebars": "4.7.7",
+    "mem": "9.0.2",
+    "multimatch": "6.0.0",
+    "tempy": "3.0.0",
+    "undici": "5.22.1",
     "walkdir": "0.4.1",
-    "yargs": "16.0.3"
+    "yargs": "17.7.2",
+    "zod": "3.21.4"
   },
   "devDependencies": {
-    "@stayradiated/pkg": "4.4.0",
-    "@types/yargs": "15.0.5"
+    "@types/node": "20.2.3",
+    "@types/yargs": "17.0.24",
+    "typescript": "5.0.4",
+    "xo": "0.54.2"
   },
   "bin": {
     "shoebox": "./bin/shoebox"
+  },
+  "__comment": "The following configs are managed by `@stayradiated/jsconfig`",
+  "xo": {
+    "space": true,
+    "semicolon": false,
+    "prettier": true
+  },
+  "prettier": {
+    "arrowParens": "always",
+    "bracketSpacing": true,
+    "semi": false,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "trailingComma": "all",
+    "useTabs": false
   }
 }

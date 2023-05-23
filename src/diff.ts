@@ -1,30 +1,31 @@
-import execa from 'execa'
+import { execa } from 'execa'
 import multimatch from 'multimatch'
+import { build } from './build.js'
 
-import { build } from './build'
-
-interface ContainerDiffReport {
-  Image1: string,
-  Image2: string,
-  DiffType: string,
+type ContainerDiffReport = {
+  Image1: string
+  Image2: string
+  DiffType: string
   Diff: {
-    Adds: { Name: string, Size: number }[],
-    Dels: { Name: string, Size: number }[],
-    Mods: { Name: string, Size1: number, Size2: number }[],
-  },
+    Adds: Array<{ Name: string; Size: number }>
+    Dels: Array<{ Name: string; Size: number }>
+    Mods: Array<{ Name: string; Size1: number; Size2: number }>
+  }
 }
 
 type ContainerDiffStdout = ContainerDiffReport[]
 
 const byName = (a: string, b: string) => a.localeCompare(b)
 
-interface ContainerDiffOptions {
-  tagA: string,
-  tagB: string,
-  expand: string[],
+type ContainerDiffOptions = {
+  tagA: string
+  tagB: string
+  expand: string[]
 }
 
-const containerDiff = async (options: ContainerDiffOptions) => {
+const containerDiff = async (
+  options: ContainerDiffOptions,
+): Promise<string[]> => {
   const { tagA, tagB, expand } = options
 
   const containerDiffProcess = execa('container-diff', [
@@ -35,24 +36,26 @@ const containerDiff = async (options: ContainerDiffOptions) => {
     '--json',
   ])
 
-  containerDiffProcess.stderr.pipe(process.stderr)
+  containerDiffProcess.stderr?.pipe(process.stderr)
 
   const { stdout } = await containerDiffProcess
   let parsedStdout: ContainerDiffStdout
   try {
     parsedStdout = JSON.parse(stdout)
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Could not parse JSON output from "container-diff".')
-    console.error(error.message)
-    return
-  }
+    if (error && typeof error === 'object' && 'message' in error) {
+      console.error(error.message)
+    }
 
-  if (parsedStdout.length === 0) {
-    console.error('Could not find a report from "container-diff"')
-    return
+    return []
   }
 
   const report = parsedStdout[0]
+  if (!report) {
+    console.error('Could not find a report from "container-diff"')
+    return []
+  }
 
   const known = {
     directories: new Set<string>(),
@@ -79,6 +82,7 @@ const containerDiff = async (options: ContainerDiffOptions) => {
         return
       }
     }
+
     for (const path of known.files) {
       if (filepath.startsWith(path + '/')) {
         known.files.delete(path)
@@ -100,13 +104,13 @@ const removeGlobs = (list: string[], globs: string[]) => {
   return multimatch(list, ['**', ...negatedGlobs])
 }
 
-interface DiffOptions {
-  packageA: string,
-  packageB: string,
-  exclude?: string[],
-  expand?: string[],
-  buildDirectory?: string,
-  verbose?: boolean,
+type DiffOptions = {
+  packageA: string
+  packageB: string
+  exclude?: string[]
+  expand?: string[]
+  buildDirectory?: string
+  verbose?: boolean
 }
 
 const diff = async (options: DiffOptions) => {

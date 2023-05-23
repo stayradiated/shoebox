@@ -1,18 +1,18 @@
-import { buildAll } from '../../generate'
+import type { Argv, ArgumentsCamelCase } from 'yargs'
+import { buildAll } from '../../generate.js'
 
 export const command = 'generate [package]'
 export const describe = 'Generate a docker image for a package'
-export const builder = {
-  package: {
+export const builder = (yargs: Argv) =>
+  yargs.option('package', {
     describe: 'name of the package',
     type: 'string',
     required: true,
-  },
-}
+  })
 
-interface Options {
-  package: string,
-}
+type Options = ArgumentsCamelCase<{
+  package: string
+}>
 
 export const handler = async (argv: Options) => {
   const { package: packageName } = argv

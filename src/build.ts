@@ -1,14 +1,13 @@
-import { promises as fs } from 'fs'
-import * as pathUtils from 'path'
-import execa from 'execa'
-import tempy from 'tempy'
+import { promises as fs } from 'node:fs'
+import * as pathUtils from 'node:path'
+import { execa } from 'execa'
+import { temporaryDirectory } from 'tempy'
+import * as generate from './generate.js'
 
-import * as generate from './generate'
-
-interface DockerBuildOptions {
-  tag: string,
-  buildDirectory: string,
-  verbose?: boolean,
+type DockerBuildOptions = {
+  tag: string
+  buildDirectory: string
+  verbose?: boolean
 }
 
 const dockerBuild = async (options: DockerBuildOptions) => {
@@ -22,30 +21,30 @@ const dockerBuild = async (options: DockerBuildOptions) => {
   ])
 
   if (verbose) {
-    dockerProcess.stdout.pipe(process.stdout)
+    dockerProcess.stdout?.pipe(process.stdout)
   }
 
-  dockerProcess.stderr.pipe(process.stderr)
+  dockerProcess.stderr?.pipe(process.stderr)
 
   await dockerProcess
 }
 
-interface BuildOptions {
-  name: string,
-  buildDirectory?: string,
-  tag?: string,
-  verbose?: boolean,
+type BuildOptions = {
+  name: string
+  buildDirectory?: string
+  tag?: string
+  verbose?: boolean
 }
 
 const build = async (options: BuildOptions) => {
-  const { name, verbose } = options
+  const { name, verbose, buildDirectory: optionsBuildDirectory } = options
 
   const tag = options.tag == null ? `local/${name}:${Date.now()}` : options.tag
 
-  const isTempDirectory = options.buildDirectory == null
-  const buildDirectory = isTempDirectory
-    ? tempy.directory()
-    : options.buildDirectory
+  const isTemporaryDirectory = typeof optionsBuildDirectory !== 'string'
+  const buildDirectory = isTemporaryDirectory
+    ? temporaryDirectory()
+    : optionsBuildDirectory
 
   const dockerfile = await generate.buildAll(name)
   const dockerfilePath = pathUtils.join(buildDirectory, 'Dockerfile')
@@ -53,14 +52,17 @@ const build = async (options: BuildOptions) => {
 
   try {
     await dockerBuild({ tag, buildDirectory, verbose })
-  } catch (error) {
-    if (error.hasOwnProperty('shortMessage')) {
-      throw new Error(error.shortMessage)
-    } else {
-      throw error
-    }
+  } catch (error: unknown) {
+    const error_ =
+      error &&
+      typeof error === 'object' &&
+      'shortMessage' in error &&
+      typeof error.shortMessage === 'string'
+        ? new Error(error.shortMessage)
+        : error
+    throw error_
   } finally {
-    if (isTempDirectory) {
+    if (isTemporaryDirectory) {
       await fs.unlink(dockerfilePath)
       await fs.rmdir(buildDirectory)
     }

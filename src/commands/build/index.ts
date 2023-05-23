@@ -1,36 +1,37 @@
-import { build } from '../../build'
+import type { Argv, ArgumentsCamelCase } from 'yargs'
+import { build } from '../../build.js'
 
 export const command = 'build [name]'
 export const describe = 'Build a package with docker'
-export const builder = {
-  name: {
-    describe: 'name of the package',
-    type: 'string',
-    required: true,
-  },
-  'build-dir': {
-    alias: 'd',
-    describe: 'path of the build directory',
-    type: 'string',
-  },
-  tag: {
-    alias: 't',
-    describe: 'docker tag',
-    type: 'string',
-  },
-  verbose: {
-    alias: 'v',
-    describe: 'display docker build info',
-    type: 'boolean',
-  },
-}
+export const builder = (yargs: Argv) =>
+  yargs
+    .option('name', {
+      describe: 'name of the package',
+      type: 'string',
+      required: true,
+    })
+    .option('build-dir', {
+      alias: 'd',
+      describe: 'path of the build directory',
+      type: 'string',
+    })
+    .option('tag', {
+      alias: 't',
+      describe: 'docker tag',
+      type: 'string',
+    })
+    .option('verbose', {
+      alias: 'v',
+      describe: 'display docker build info',
+      type: 'boolean',
+    })
 
-interface Options {
-  name: string,
-  buildDir?: string,
-  tag?: string,
-  verbose?: boolean,
-}
+type Options = ArgumentsCamelCase<{
+  name: string
+  buildDir?: string
+  tag?: string
+  verbose?: boolean
+}>
 
 export const handler = async (argv: Options) => {
   const { name, buildDir, tag, verbose } = argv
