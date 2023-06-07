@@ -21,7 +21,7 @@ const templateFn: TemplateFn = async (options) => {
     from: 'base',
     version,
     devDependencies: ['apteryx'],
-    build: `apteryx install ${name}='{{VERSION}}'\n`,
+    build: `apteryx ${name}='{{VERSION}}'\n`,
     exports: [],
   }
 }
