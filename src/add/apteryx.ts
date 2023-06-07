@@ -20,8 +20,8 @@ const templateFn: TemplateFn = async (options) => {
     name,
     from: 'base',
     version,
-    devDependencies: ['pipx'],
-    build: `pipx install ${name}='{{VERSION}}'\n`,
+    devDependencies: ['apteryx'],
+    build: `apteryx install ${name}='{{VERSION}}'\n`,
     exports: [],
   }
 }
