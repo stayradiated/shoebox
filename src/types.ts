@@ -2,7 +2,14 @@ import type { z } from 'zod'
 import type { $Package } from './schema.js'
 
 export type Package = z.infer<typeof $Package>
-export type PackageMap = Map<string, Package>
+
+export type PackageInfo = {
+  filepath: string
+  content: string
+  package: Package
+}
+export type PackageMap = Map<string, PackageInfo>
+
 export type PackageResolver = (name: string) => Package
 
 export type DependencyResolver = (

@@ -39,7 +39,7 @@ const $CheckUpdates = z.discriminatedUnion('type', [
     .object({
       type: z.literal('json'),
       url: z.string(),
-      path: z.array(z.string())
+      path: z.array(z.string()),
     })
     .strict(),
 ])

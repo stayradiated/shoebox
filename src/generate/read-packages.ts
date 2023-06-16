@@ -33,7 +33,11 @@ const readPackages = mem(async (directory: string): Promise<PackageMap> => {
 
         const pkg = result.data
 
-        packageMap.set(pkg.name, pkg)
+        packageMap.set(pkg.name, {
+          filepath,
+          content: body,
+          package: pkg,
+        })
       } catch (error) {
         if (error instanceof InvalidPackageError) {
           console.error(chalk.red(error.toString()))

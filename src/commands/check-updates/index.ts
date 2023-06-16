@@ -15,14 +15,20 @@ export const builder = (yargs: Argv) =>
       describe: 'check updates for all dependencies',
       type: 'boolean',
     })
+    .option('upgrade', {
+      alias: 'u',
+      describe: 'write updated version to component file',
+      type: 'boolean',
+    })
 
 type Options = ArgumentsCamelCase<{
   name: string
   recursive?: boolean
+  upgrade?: boolean
 }>
 
 export const handler = async (argv: Options) => {
-  const { name: packageName, recursive } = argv
+  const { name: packageName, recursive, upgrade } = argv
 
-  await checkUpdates({ packageName, recursive })
+  await checkUpdates({ packageName, recursive, upgrade })
 }

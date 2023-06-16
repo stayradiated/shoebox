@@ -13,6 +13,7 @@
     "@iarna/toml": "2.2.5",
     "@thi.ng/dgraph": "2.1.50",
     "chalk": "5.2.0",
+    "escape-string-regexp": "5.0.0",
     "execa": "7.1.1",
     "flexver": "1.1.0",
     "handlebars": "4.7.7",

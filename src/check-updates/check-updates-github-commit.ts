@@ -12,7 +12,9 @@ type CheckUpdatesGithubCommitOptions = {
   url: string
 }
 
-const checkUpdatesGithubCommit = async (options: CheckUpdatesGithubCommitOptions) => {
+const checkUpdatesGithubCommit = async (
+  options: CheckUpdatesGithubCommitOptions,
+) => {
   const { url } = options
 
   // Regex to match a github owner and repo name from a github url

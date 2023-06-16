@@ -10,7 +10,13 @@ type CheckUpdatesOptions = {
   pkg: Package
 }
 
-const checkUpdates = async (options: CheckUpdatesOptions) => {
+type CheckUpdateResult = {
+  latestVersion: string
+}
+
+const checkUpdates = async (
+  options: CheckUpdatesOptions,
+): Promise<CheckUpdateResult | undefined> => {
   const { pkg } = options
 
   if (!pkg.version) {
@@ -63,12 +69,8 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
     }
   }
 
-  if (latestVersion === pkg.version) {
-    console.log(`\n${pkg.name} is up to date`)
-    console.log(`  ${pkg.version}`)
-  } else {
-    console.log(`\nNew version of ${pkg.name} available:`)
-    console.log(`  ${pkg.version} -> ${latestVersion}`)
+  return {
+    latestVersion,
   }
 }
 

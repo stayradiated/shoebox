@@ -25,7 +25,6 @@ const checkUpdatesApt = async (options: CheckUpdatesAptOptions) => {
     })
 
   const versionList = [...new Set(versionListWithDuplicates)]
-  console.log(versionList)
 
   const version = versionList[0]
   if (!version) {
