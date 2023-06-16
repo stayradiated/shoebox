@@ -5,6 +5,7 @@ import { githubHeaders } from './github-utils.js'
 const $Response = z.array(
   z.object({
     tag_name: z.string().optional(),
+    prerelease: z.boolean().optional(),
   }),
 )
 
@@ -47,6 +48,7 @@ const checkUpdatesGithubRelease = async (
   const latestReleaseWithTag = body.data.find((release) => {
     // Console.log(release.tag_name, matchTagRegex)
     return (
+      !release.prerelease &&
       release.tag_name &&
       (!matchTagRegex || matchTagRegex.test(release.tag_name))
     )
