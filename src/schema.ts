@@ -1,6 +1,31 @@
 import { z } from 'zod'
 
-export const $Package = z.object({
+const $CheckUpdates = z.discriminatedUnion('type', [
+  z
+    .object({
+      type: z.literal('github-release'),
+      url: z.string(),
+      matchTag: z.string().optional(),
+      removePrefix: z.string().optional(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('github-commit'),
+      url: z.string(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('github-tag'),
+      url: z.string(),
+      matchTag: z.string().optional(),
+      removePrefix: z.string().optional(),
+    })
+    .strict(),
+])
+
+const $Package = z.object({
   baseExportDir: z.string().optional(),
   build: z.string().optional(),
   command: z.string().optional(),
@@ -17,4 +42,7 @@ export const $Package = z.object({
   user: z.string().optional(),
   version: z.string().optional(),
   workdir: z.string().optional(),
+  checkUpdates: $CheckUpdates.optional(),
 })
+
+export { $Package }

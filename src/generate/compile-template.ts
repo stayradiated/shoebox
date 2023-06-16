@@ -19,11 +19,12 @@ const compileTemplate = (
       )
       .filter((line) => line.length > 0)
       .map((line, index, lines) => {
+        // Add backslash at the end of each line except the last one
         return (
-          index < lines.length - 1 ? line.replace(/$/gm, ' && \\') : line
-        ).replace(/^/gm, '  ') // Indent
+          index < lines.length - 1 ? line.replace(/$/gm, ' \\') : line
+        ).replace(/^/gm, '  ; ') // Indent
       })
-    lines.unshift('RUN \\')
+    lines.unshift('RUN set -e \\')
     return lines
   })
 }

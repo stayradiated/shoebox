@@ -5,7 +5,7 @@ export const command = 'build [name]'
 export const describe = 'Build a package with docker'
 export const builder = (yargs: Argv) =>
   yargs
-    .option('name', {
+    .positional('name', {
       describe: 'name of the package',
       type: 'string',
       required: true,

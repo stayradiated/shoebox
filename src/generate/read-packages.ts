@@ -37,6 +37,8 @@ const readPackages = mem(async (directory: string): Promise<PackageMap> => {
       } catch (error) {
         if (error instanceof InvalidPackageError) {
           console.error(chalk.red(error.toString()))
+        } else {
+          throw error
         }
       }
     }),
