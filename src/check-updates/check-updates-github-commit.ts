@@ -8,14 +8,12 @@ const $LatestCommitResponse = z.array(
   }),
 )
 
-type CheckGithubCommitOptions = {
+type CheckUpdatesGithubCommitOptions = {
   url: string
 }
 
-const checkUpdatesGithubCommit = async (options: CheckGithubCommitOptions) => {
+const checkUpdatesGithubCommit = async (options: CheckUpdatesGithubCommitOptions) => {
   const { url } = options
-
-  console.log(`Checking github release for ${url}`)
 
   // Regex to match a github owner and repo name from a github url
   const githubUrlRegex =

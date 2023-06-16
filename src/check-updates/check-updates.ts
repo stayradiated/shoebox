@@ -1,7 +1,10 @@
 import type { Package } from '../types.js'
-import { checkUpdatesGithubRelease } from './check-updates-github-release.js'
+import { checkUpdatesApt } from './check-updates-apt.js'
+import { checkUpdatesJson } from './check-updates-json.js'
 import { checkUpdatesGithubCommit } from './check-updates-github-commit.js'
+import { checkUpdatesGithubRelease } from './check-updates-github-release.js'
 import { checkUpdatesGithubTag } from './check-updates-github-tag.js'
+import { checkUpdatesNpm } from './check-updates-npm.js'
 
 type CheckUpdatesOptions = {
   pkg: Package
@@ -9,6 +12,11 @@ type CheckUpdatesOptions = {
 
 const checkUpdates = async (options: CheckUpdatesOptions) => {
   const { pkg } = options
+
+  if (!pkg.version) {
+    console.warn(`Skipping package ${pkg.name} as it does not have a version.`)
+    return
+  }
 
   if (!pkg.checkUpdates) {
     console.warn(
@@ -32,6 +40,21 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
 
     case 'github-tag': {
       latestVersion = await checkUpdatesGithubTag(pkg.checkUpdates)
+      break
+    }
+
+    case 'npm': {
+      latestVersion = await checkUpdatesNpm(pkg.checkUpdates)
+      break
+    }
+
+    case 'apt': {
+      latestVersion = await checkUpdatesApt(pkg.checkUpdates)
+      break
+    }
+
+    case 'json': {
+      latestVersion = await checkUpdatesJson(pkg.checkUpdates)
       break
     }
 

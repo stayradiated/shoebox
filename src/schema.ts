@@ -23,6 +23,25 @@ const $CheckUpdates = z.discriminatedUnion('type', [
       removePrefix: z.string().optional(),
     })
     .strict(),
+  z
+    .object({
+      type: z.literal('npm'),
+      packageName: z.string(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('apt'),
+      name: z.string(),
+    })
+    .strict(),
+  z
+    .object({
+      type: z.literal('json'),
+      url: z.string(),
+      path: z.array(z.string())
+    })
+    .strict(),
 ])
 
 const $Package = z.object({

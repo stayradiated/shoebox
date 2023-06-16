@@ -8,18 +8,16 @@ const $Response = z.array(
   }),
 )
 
-type CheckGithubReleaseOptions = {
+type CheckUpdatesGithubReleaseOptions = {
   url: string
   matchTag?: string
   removePrefix?: string
 }
 
 const checkUpdatesGithubRelease = async (
-  options: CheckGithubReleaseOptions,
+  options: CheckUpdatesGithubReleaseOptions,
 ): Promise<string> => {
   const { url, matchTag, removePrefix } = options
-
-  console.log(`Checking github release for ${url}`)
 
   // Regex to match a github owner and repo name from a github url
   const githubUrlRegex =
