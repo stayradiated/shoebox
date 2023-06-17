@@ -1,6 +1,6 @@
 import { execa } from 'execa'
-import multimatch from 'multimatch'
-import { build } from './build.js'
+
+const byName = (a: string, b: string) => a.localeCompare(b)
 
 type ContainerDiffReport = {
   Image1: string
@@ -15,8 +15,6 @@ type ContainerDiffReport = {
 
 type ContainerDiffStdout = ContainerDiffReport[]
 
-const byName = (a: string, b: string) => a.localeCompare(b)
-
 type ContainerDiffOptions = {
   tagA: string
   tagB: string
@@ -27,6 +25,10 @@ const containerDiff = async (
   options: ContainerDiffOptions,
 ): Promise<string[]> => {
   const { tagA, tagB, expand } = options
+
+  console.log(
+    `container-diff diff daemon://${tagA} daemon://${tagB} --type=file --json`,
+  )
 
   const containerDiffProcess = execa('container-diff', [
     'diff',
@@ -97,42 +99,4 @@ const containerDiff = async (
   return [...known.directories, ...known.files].sort(byName)
 }
 
-const removeGlobs = (list: string[], globs: string[]) => {
-  const negatedGlobs = globs.map((glob) =>
-    glob.startsWith('!') ? glob : `!${glob}`,
-  )
-  return multimatch(list, ['**', ...negatedGlobs])
-}
-
-type DiffOptions = {
-  packageA: string
-  packageB: string
-  exclude?: string[]
-  expand?: string[]
-  buildDirectory?: string
-  verbose?: boolean
-}
-
-const diff = async (options: DiffOptions) => {
-  const {
-    packageA,
-    packageB,
-    exclude,
-    expand = [],
-    buildDirectory,
-    verbose,
-  } = options
-
-  const { tag: tagA } = await build({ name: packageA, buildDirectory, verbose })
-  const { tag: tagB } = await build({ name: packageB, buildDirectory, verbose })
-
-  const result = await containerDiff({ tagA, tagB, expand })
-
-  if (exclude == null || exclude.length === 0) {
-    return result
-  }
-
-  return removeGlobs(result, exclude)
-}
-
-export { diff }
+export { containerDiff }

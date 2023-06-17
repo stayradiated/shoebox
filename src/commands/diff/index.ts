@@ -1,19 +1,20 @@
 import type { Argv, ArgumentsCamelCase } from 'yargs'
-import { diff } from '../../diff.js'
+import { diff } from '../../diff/index.js'
 
-export const command = 'diff [packageA] [packageB]'
+export const command = 'diff [name]'
 export const describe = 'Show a diff of two packages'
 export const builder = (yargs: Argv) =>
   yargs
-    .option('packageA', {
-      describe: 'name of package A',
+    .positional('name', {
+      describe: 'name of package',
       type: 'string',
       required: true,
     })
-    .option('packageB', {
-      describe: 'name of package B',
+    .option('directory', {
+      alias: 'd',
+      describe: 'path of the package directory',
       type: 'string',
-      required: true,
+      default: '.',
     })
     .option('exclude', {
       describe: 'exclude globs from diff',
@@ -28,30 +29,39 @@ export const builder = (yargs: Argv) =>
       describe: 'path of the build directory',
       type: 'string',
     })
-    .option('verbose', {
-      alias: 'v',
-      describe: 'display docker build info',
+    .option('quiet', {
+      alias: 'q',
+      describe: 'hide docker build info',
       type: 'boolean',
     })
 
 type Options = ArgumentsCamelCase<{
-  packageA: string
-  packageB: string
+  name: string
+  directory: string
   exclude?: string[]
   expand?: string[]
   buildDir?: string
-  verbose?: boolean
+  quiet?: boolean
 }>
 
 export const handler = async (argv: Options) => {
-  const { packageA, packageB, exclude, expand, buildDir, verbose } = argv
+  const {
+    name: packageName,
+    directory: packageDirectory,
+    exclude,
+    expand,
+    buildDir,
+    quiet,
+  } = argv
+
   const list = await diff({
-    packageA,
-    packageB,
+    packageName,
+    packageDirectory,
     exclude,
     expand,
     buildDirectory: buildDir,
-    verbose,
+    verbose: !quiet,
   })
+
   console.log(JSON.stringify(list, null, 2))
 }

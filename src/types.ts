@@ -1,7 +1,10 @@
 import type { z } from 'zod'
+import type { DGraph } from '@thi.ng/dgraph'
 import type { $Package } from './schema.js'
 
 export type Package = z.infer<typeof $Package>
+
+export type PackageTree = DGraph<Package>
 
 export type PackageInfo = {
   filepath: string

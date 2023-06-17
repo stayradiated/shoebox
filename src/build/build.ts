@@ -1,52 +1,37 @@
 import { promises as fs } from 'node:fs'
 import * as pathUtils from 'node:path'
-import { execa } from 'execa'
 import { temporaryDirectory } from 'tempy'
-import * as generate from './generate.js'
-
-type DockerBuildOptions = {
-  tag: string
-  buildDirectory: string
-  verbose?: boolean
-}
-
-const dockerBuild = async (options: DockerBuildOptions) => {
-  const { tag, buildDirectory, verbose } = options
-  const dockerProcess = execa('docker', [
-    'build',
-    '--squash',
-    '-t',
-    tag,
-    buildDirectory,
-  ])
-
-  if (verbose) {
-    dockerProcess.stdout?.pipe(process.stdout)
-  }
-
-  dockerProcess.stderr?.pipe(process.stderr)
-
-  await dockerProcess
-}
+import * as generate from '../generate.js'
+import type { PackageTree, PackageResolver } from '../types.js'
+import { dockerBuild } from './docker-build.js'
 
 type BuildOptions = {
-  name: string
+  tree: PackageTree
+  resolvePackage: PackageResolver
+  tag: string
+
   buildDirectory?: string
-  tag?: string
   verbose?: boolean
 }
 
-const build = async (options: BuildOptions) => {
-  const { name, verbose, buildDirectory: optionsBuildDirectory } = options
-
-  const tag = options.tag == null ? `local/${name}:${Date.now()}` : options.tag
+const build = async (options: BuildOptions): Promise<void> => {
+  const {
+    verbose,
+    tag,
+    buildDirectory: optionsBuildDirectory,
+    tree,
+    resolvePackage,
+  } = options
 
   const isTemporaryDirectory = typeof optionsBuildDirectory !== 'string'
   const buildDirectory = isTemporaryDirectory
     ? temporaryDirectory()
     : optionsBuildDirectory
 
-  const dockerfile = await generate.buildAll(name)
+  const dockerfile = await generate.buildAll({
+    tree,
+    resolvePackage,
+  })
   const dockerfilePath = pathUtils.join(buildDirectory, 'Dockerfile')
   await fs.writeFile(dockerfilePath, dockerfile)
 
@@ -66,12 +51,6 @@ const build = async (options: BuildOptions) => {
       await fs.unlink(dockerfilePath)
       await fs.rmdir(buildDirectory)
     }
-  }
-
-  return {
-    name,
-    buildDirectory,
-    tag,
   }
 }
 

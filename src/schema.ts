@@ -1,5 +1,9 @@
 import { z } from 'zod'
 
+const $Diff = z.object({
+  exclude: z.array(z.string())
+}).strict()
+
 const $CheckUpdates = z.discriminatedUnion('type', [
   z
     .object({
@@ -62,6 +66,7 @@ const $Package = z.object({
   version: z.string().optional(),
   workdir: z.string().optional(),
   checkUpdates: $CheckUpdates.optional(),
+  diff: $Diff.optional(),
 })
 
 export { $Package }

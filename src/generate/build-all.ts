@@ -1,22 +1,13 @@
-import { readPackages } from './read-packages.js'
-import { resolveDependencyTree } from './resolve-dependency-tree.js'
-import { composeResolvers } from './compose-resolvers.js'
-import { resolveFrom } from './resolve-from.js'
-import { resolveDevDependencies } from './resolve-dev-dependencies.js'
-import { resolveDependencies } from './resolve-dependencies.js'
-import { createPackageResolver } from './create-package-resolver.js'
+import type { PackageTree, PackageResolver } from '../types.js'
 import { build } from './build.js'
 
-const buildAll = async (packageName: string) => {
-  const packageMap = await readPackages('.')
-  const resolvePackage = createPackageResolver(packageMap)
-  const pkg = resolvePackage(packageName)
+type BuildAllOptions = {
+  tree: PackageTree
+  resolvePackage: PackageResolver
+}
 
-  const tree = resolveDependencyTree(
-    pkg,
-    composeResolvers(resolveFrom, resolveDevDependencies, resolveDependencies),
-    resolvePackage,
-  )
+const buildAll = async (options: BuildAllOptions) => {
+  const { tree, resolvePackage } = options
 
   const dependencies = tree.sort()
 
@@ -47,7 +38,7 @@ const buildAll = async (packageName: string) => {
       )
     }
 
-    dockerfile += await build({
+    dockerfile += build({
       pkg: dependency,
       resolvePackage,
       withExports: isDependendOn,

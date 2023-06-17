@@ -1,5 +1,5 @@
 import type { Argv, ArgumentsCamelCase } from 'yargs'
-import { build } from '../../build.js'
+import { buildFromDir, localTag } from '../../build/index.js'
 
 export const command = 'build [name]'
 export const describe = 'Build a package with docker'
@@ -10,8 +10,14 @@ export const builder = (yargs: Argv) =>
       type: 'string',
       required: true,
     })
-    .option('build-dir', {
+    .option('directory', {
       alias: 'd',
+      describe: 'path of the package directory',
+      type: 'string',
+      default: '.',
+    })
+    .option('build-dir', {
+      alias: 'b',
       describe: 'path of the build directory',
       type: 'string',
     })
@@ -28,13 +34,26 @@ export const builder = (yargs: Argv) =>
 
 type Options = ArgumentsCamelCase<{
   name: string
+  directory: string
   buildDir?: string
   tag?: string
   verbose?: boolean
 }>
 
 export const handler = async (argv: Options) => {
-  const { name, buildDir, tag, verbose } = argv
+  const {
+    name: packageName,
+    directory: packageDirectory,
+    buildDir,
+    tag,
+    verbose,
+  } = argv
 
-  await build({ name, buildDirectory: buildDir, tag, verbose })
+  await buildFromDir({
+    packageName,
+    packageDirectory,
+    buildDirectory: buildDir,
+    tag: typeof tag === 'string' ? tag : localTag(packageName),
+    verbose,
+  })
 }

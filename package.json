@@ -38,7 +38,10 @@
   "xo": {
     "space": true,
     "semicolon": false,
-    "prettier": true
+    "prettier": true,
+    "rules": {
+      "n/file-extension-in-import": "off"
+    }
   },
   "prettier": {
     "arrowParens": "always",
