@@ -4,7 +4,7 @@ import { githubHeaders } from './github-utils.js'
 
 const $Response = z.array(
   z.object({
-    name: z.string(),
+    name: z.string().nullable(),
     tag_name: z.string().optional(),
     prerelease: z.boolean().optional(),
   }),
@@ -42,7 +42,9 @@ const checkUpdatesGithubRelease = async (
   const body = $Response.safeParse(rawBody)
   if (!body.success) {
     throw new Error(
-      `Invalid response from github:\n\n${JSON.stringify(rawBody)}`,
+      `Invalid response from github:\n\n${JSON.stringify(
+        rawBody,
+      )}\n\n${JSON.stringify(body.error.issues, null, 2)}`,
     )
   }
 
@@ -53,7 +55,8 @@ const checkUpdatesGithubRelease = async (
     return (
       release.tag_name &&
       (!matchTagRegex || matchTagRegex.test(release.tag_name)) &&
-      (!matchNameRegex || matchNameRegex.test(release.name)) &&
+      (!matchNameRegex ||
+        (release.name && matchNameRegex.test(release.name))) &&
       (typeof matchPrerelease !== 'boolean' ||
         matchPrerelease === release.prerelease)
     )
