@@ -4,6 +4,7 @@ import { githubHeaders } from './github-utils.js'
 
 const $Response = z.array(
   z.object({
+    name: z.string(),
     tag_name: z.string().optional(),
     prerelease: z.boolean().optional(),
   }),
@@ -12,13 +13,15 @@ const $Response = z.array(
 type CheckUpdatesGithubReleaseOptions = {
   url: string
   matchTag?: string
+  matchName?: string
   removePrefix?: string
+  matchPrerelease?: boolean
 }
 
 const checkUpdatesGithubRelease = async (
   options: CheckUpdatesGithubReleaseOptions,
 ): Promise<string> => {
-  const { url, matchTag, removePrefix } = options
+  const { url, matchTag, matchName, removePrefix, matchPrerelease } = options
 
   // Regex to match a github owner and repo name from a github url
   const githubUrlRegex =
@@ -36,6 +39,7 @@ const checkUpdatesGithubRelease = async (
     headers: githubHeaders,
   })
   const rawBody = await response.json()
+  console.log(rawBody)
   const body = $Response.safeParse(rawBody)
   if (!body.success) {
     throw new Error(
@@ -44,13 +48,16 @@ const checkUpdatesGithubRelease = async (
   }
 
   const matchTagRegex = matchTag ? new RegExp(matchTag) : undefined
+  const matchNameRegex = matchName ? new RegExp(matchName) : undefined
 
   const latestReleaseWithTag = body.data.find((release) => {
-    // Console.log(release.tag_name, matchTagRegex)
+    console.log(release)
     return (
-      !release.prerelease &&
       release.tag_name &&
-      (!matchTagRegex || matchTagRegex.test(release.tag_name))
+      (!matchTagRegex || matchTagRegex.test(release.tag_name)) &&
+      (!matchNameRegex || matchNameRegex.test(release.name)) &&
+      (typeof matchPrerelease !== 'boolean' ||
+        matchPrerelease === release.prerelease)
     )
   })
   if (!latestReleaseWithTag?.tag_name) {

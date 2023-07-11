@@ -12,6 +12,8 @@ const $CheckUpdates = z.discriminatedUnion('type', [
       type: z.literal('github-release'),
       url: z.string(),
       matchTag: z.string().optional(),
+      matchName: z.string().optional(),
+      matchPrerelease: z.boolean().optional(),
       removePrefix: z.string().optional(),
     })
     .strict(),
