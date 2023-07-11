@@ -1,3 +1,4 @@
+import pMap from 'p-map'
 import { readPackages } from '../tree/read-packages.js'
 import { createPackageResolver } from '../tree/create-package-resolver.js'
 import { resolveDependencyTree } from '../tree/resolve-dependency-tree.js'
@@ -36,8 +37,9 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
     pkgList = [...tree.nodes()]
   }
 
-  await Promise.all(
-    pkgList.map(async (pkg) => {
+  await pMap(
+    pkgList,
+    async (pkg) => {
       const result = await checkPackageUpdates({ pkg })
       if (!result) {
         return
@@ -63,7 +65,10 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
         console.log(`\n✅ ${pkg.name} is up to date:
 -> ${pkg.version}`)
       }
-    }),
+    },
+    {
+      concurrency: 5,
+    },
   )
 }
 

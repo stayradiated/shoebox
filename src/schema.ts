@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
-const $Diff = z.object({
-  exclude: z.array(z.string())
-}).strict()
+const $Diff = z
+  .object({
+    exclude: z.array(z.string()),
+  })
+  .strict()
 
 const $CheckUpdates = z.discriminatedUnion('type', [
   z
