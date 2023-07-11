@@ -39,7 +39,6 @@ const checkUpdatesGithubRelease = async (
     headers: githubHeaders,
   })
   const rawBody = await response.json()
-  console.log(rawBody)
   const body = $Response.safeParse(rawBody)
   if (!body.success) {
     throw new Error(
@@ -51,7 +50,6 @@ const checkUpdatesGithubRelease = async (
   const matchNameRegex = matchName ? new RegExp(matchName) : undefined
 
   const latestReleaseWithTag = body.data.find((release) => {
-    console.log(release)
     return (
       release.tag_name &&
       (!matchTagRegex || matchTagRegex.test(release.tag_name)) &&
