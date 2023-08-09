@@ -11,26 +11,27 @@
   },
   "dependencies": {
     "@iarna/toml": "2.2.5",
-    "@thi.ng/dgraph": "2.1.50",
+    "@thi.ng/dgraph": "2.1.52",
     "chalk": "5.3.0",
     "escape-string-regexp": "5.0.0",
-    "execa": "7.1.1",
-    "flexver": "1.1.0",
-    "handlebars": "4.7.7",
+    "execa": "7.2.0",
+    "flexver": "1.1.1",
+    "handlebars": "4.7.8",
     "mem": "9.0.2",
     "multimatch": "6.0.0",
     "p-map": "6.0.0",
+    "p-queue": "7.3.4",
     "tempy": "3.1.0",
-    "undici": "5.22.1",
+    "undici": "5.23.0",
     "walkdir": "0.4.1",
     "yargs": "17.7.2",
     "zod": "3.21.4"
   },
   "devDependencies": {
-    "@types/node": "20.4.1",
+    "@types/node": "20.4.9",
     "@types/yargs": "17.0.24",
     "typescript": "5.1.6",
-    "xo": "0.54.2"
+    "xo": "0.55.1"
   },
   "bin": {
     "shoebox": "./bin/shoebox"

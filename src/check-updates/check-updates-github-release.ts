@@ -1,6 +1,6 @@
 import { fetch } from 'undici'
 import { z } from 'zod'
-import { githubHeaders } from './github-utils.js'
+import { githubHeaders, githubRateLimit } from './github-utils.js'
 
 const $Response = z.array(
   z.object({
@@ -35,10 +35,12 @@ const checkUpdatesGithubRelease = async (
   const { owner, repo } = match.groups!
 
   const releasesUrl = `https://api.github.com/repos/${owner}/${repo}/releases`
-  const response = await fetch(releasesUrl, {
-    headers: githubHeaders,
+  const rawBody = await githubRateLimit(async () => {
+    const response = await fetch(releasesUrl, {
+      headers: githubHeaders,
+    })
+    return response.json()
   })
-  const rawBody = await response.json()
   const body = $Response.safeParse(rawBody)
   if (!body.success) {
     throw new Error(

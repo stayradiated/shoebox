@@ -7,7 +7,7 @@ const compileEnv = (pkg: Package): string[] => {
 
   const env = pkg.env
     .map(([key, value]) => {
-      return `${key}=${value.replace(/\s/g, '\\ ')}`
+      return `${key}=${value.replaceAll(/\s/g, '\\ ')}`
     })
     .join(' \\\n  ')
 

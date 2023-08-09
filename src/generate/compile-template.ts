@@ -15,14 +15,14 @@ const compileTemplate = (
     const lines = section
       .split('\n')
       .map(
-        (line) => line.trim().replace(/^\s*#.*$/gm, ''), // Remove comments
+        (line) => line.trim().replaceAll(/^\s*#.*$/gm, ''), // Remove comments
       )
       .filter((line) => line.length > 0)
       .map((line, index, lines) => {
         // Add backslash at the end of each line except the last one
         return (
-          index < lines.length - 1 ? line.replace(/$/gm, ' \\') : line
-        ).replace(/^/gm, '  ; ') // Indent
+          index < lines.length - 1 ? line.replaceAll(/$/gm, ' \\') : line
+        ).replaceAll(/^/gm, '  ; ') // Indent
       })
     lines.unshift('RUN set -e \\')
     return lines

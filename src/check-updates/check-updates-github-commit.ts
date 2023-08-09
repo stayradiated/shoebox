@@ -1,6 +1,6 @@
 import { fetch } from 'undici'
 import { z } from 'zod'
-import { githubHeaders } from './github-utils.js'
+import { githubHeaders, githubRateLimit } from './github-utils.js'
 
 const $LatestCommitResponse = z.array(
   z.object({
@@ -29,10 +29,12 @@ const checkUpdatesGithubCommit = async (
   const { owner, repo } = match.groups!
 
   const latestCommitUrl = `https://api.github.com/repos/${owner}/${repo}/commits`
-  const response = await fetch(latestCommitUrl, {
-    headers: githubHeaders,
+  const rawBody = await githubRateLimit(async () => {
+    const response = await fetch(latestCommitUrl, {
+      headers: githubHeaders,
+    })
+    return response.json()
   })
-  const rawBody = await response.json()
   const body = $LatestCommitResponse.parse(rawBody)
 
   const latestCommit = body[0]

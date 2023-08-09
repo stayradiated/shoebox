@@ -41,7 +41,7 @@ const compileDependencies = (options: {
     if (exportEnv && exportEnv.length > 0) {
       const env = exportEnv
         .map(([key, value]) => {
-          return `${key}=${value.replace(/\s/g, '\\ ')}`
+          return `${key}=${value.replaceAll(/\s/g, '\\ ')}`
         })
         .join(' \\\n  ')
       exportEnvLines.push(`ENV \\\n  ${env}`)
