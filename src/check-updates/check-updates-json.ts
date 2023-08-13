@@ -15,7 +15,14 @@ const checkUpdatesJson = async (
       Accept: 'application/json',
     },
   })
-  const body = await response.json()
+  const bodyJSON = await response.text()
+  let body: unknown
+  try {
+    body = JSON.parse(bodyJSON)
+  } catch (error: unknown) {
+    console.log(`----\n${bodyJSON}\n----`)
+    throw new Error(`Could not parse JSON from ${url}.\nError: ${error}`)
+  }
 
   const version = path.reduce<unknown>((acc, key) => {
     if (typeof acc === 'object' && acc !== null && key in acc) {
