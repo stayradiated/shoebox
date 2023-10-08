@@ -17,9 +17,7 @@ const templateFn: TemplateFn = async (options) => {
     from: 'base',
     version,
     devDependencies: ['wget'],
-    build: `wget \\
-  -O /tmp/${repo}.tgz \\
-  '${url}/releases/download/v{{VERSION}}/${repo}_{{VERSION}}_linux_amd64.tar.gz'
+    build: `wget -O /tmp/${repo}.tgz '${url}/releases/download/v{{VERSION}}/${repo}_{{VERSION}}_linux_amd64.tar.gz'
 tar xzvf /tmp/${repo}.tgz
 rm /tmp/${repo}.tgz
 
