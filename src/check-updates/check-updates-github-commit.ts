@@ -1,6 +1,10 @@
 import { fetch } from 'undici'
 import { z } from 'zod'
-import { githubHeaders, githubRateLimit } from './github-utils.js'
+import {
+  githubHeaders,
+  githubRateLimit,
+  parseGithubUrl,
+} from './github-utils.js'
 
 const $LatestCommitResponse = z.array(
   z.object({
@@ -17,16 +21,7 @@ const checkUpdatesGithubCommit = async (
 ) => {
   const { url } = options
 
-  // Regex to match a github owner and repo name from a github url
-  const githubUrlRegex =
-    /^https:\/\/github.com\/(?<owner>[^/]+)\/(?<repo>[^/]+$)/
-  const match = githubUrlRegex.exec(url)
-
-  if (!match) {
-    throw new Error(`Invalid github repo url: "${url}"`)
-  }
-
-  const { owner, repo } = match.groups!
+  const { owner, repo } = parseGithubUrl(url)
 
   const latestCommitUrl = `https://api.github.com/repos/${owner}/${repo}/commits`
   const rawBody = await githubRateLimit(async () => {

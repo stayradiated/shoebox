@@ -25,4 +25,29 @@ const githubRateLimit = async <T>(fn: () => Promise<T>): Promise<T> => {
   })
 }
 
-export { githubHeaders, githubRateLimit }
+type GithubUrl = {
+  owner: string
+  repo: string
+}
+
+const parseGithubUrl = (url: string): GithubUrl => {
+  // Regex to match a github owner and repo name from a github url
+  const githubUrlRegex =
+    /^https:\/\/github.com\/(?<owner>[^/]+)\/(?<repo>[^/]+$)/
+  const match = githubUrlRegex.exec(url)
+
+  if (!match?.groups) {
+    throw new Error(`Invalid github repo url: "${url}"`)
+  }
+
+  const { owner, repo } = match.groups
+  if (!owner || !repo) {
+    throw new Error(
+      `Invalid github repo url: "${url}": ${JSON.stringify(match)}`,
+    )
+  }
+
+  return { owner, repo }
+}
+
+export { githubHeaders, githubRateLimit, parseGithubUrl }
