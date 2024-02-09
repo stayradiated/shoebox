@@ -17,23 +17,23 @@ const createExportsResolver = (options: {
   const { resolvePackage, resolveUser, resolveBaseExportDir } = options
 
   const resolveExports: ExportsResolver = mem(
-    (pkg: Package): Export[] => {
+    (package_: Package): Export[] => {
       const exports = [] as Export[]
 
-      if (pkg.exports != null) {
+      if (package_.exports != null) {
         exports.push({
-          user: resolveUser(pkg),
+          user: resolveUser(package_),
           exports: [
             {
-              baseExportDir: resolveBaseExportDir(pkg),
-              filePaths: pkg.exports,
+              baseExportDir: resolveBaseExportDir(package_),
+              filePaths: package_.exports,
             },
           ],
         })
       }
 
-      if (pkg.dependencies != null) {
-        pkg.dependencies.map((dependencyName) => {
+      if (package_.dependencies != null) {
+        package_.dependencies.map((dependencyName) => {
           const dependency = resolvePackage(dependencyName)
           appendExports(exports, resolveExports(dependency))
         })
@@ -42,7 +42,7 @@ const createExportsResolver = (options: {
       return exports
     },
     {
-      cacheKey: ([pkg]) => pkg.name,
+      cacheKey: ([package_]) => package_.name,
     },
   )
 

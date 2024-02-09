@@ -1,11 +1,11 @@
 import type { Package } from '../types.js'
 
-const compileEnv = (pkg: Package): string[] => {
-  if (pkg.env == null || pkg.env.length === 0) {
+const compileEnv = (package_: Package): string[] => {
+  if (package_.env == null || package_.env.length === 0) {
     return []
   }
 
-  const env = pkg.env
+  const env = package_.env
     .map(([key, value]) => {
       return `${key}=${value.replaceAll(/\s/g, '\\ ')}`
     })

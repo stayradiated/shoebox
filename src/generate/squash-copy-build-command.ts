@@ -15,14 +15,16 @@ const squashCopyBuildCommand = (options: {
   return exports.flatMap(({ user, exports }) => {
     const commands = exports.flatMap(({ baseExportDir, filePaths }) => {
       const actions = [] as Array<{ src: string[]; dest: string }>
-      for (const srcFilePath of filePaths) {
-        const dest = dirname(srcFilePath) + '/'
-        const src = srcFilePath.replace(/\/\s*$/, '')
-        const existingAction = actions.find((action) => action.dest === dest)
+      for (const sourceFilePath of filePaths) {
+        const destination = dirname(sourceFilePath) + '/'
+        const source = sourceFilePath.replace(/\/\s*$/, '')
+        const existingAction = actions.find(
+          (action) => action.dest === destination,
+        )
         if (existingAction) {
-          existingAction.src.push(src)
+          existingAction.src.push(source)
         } else {
-          actions.push({ src: [src], dest })
+          actions.push({ src: [source], dest: destination })
         }
       }
 

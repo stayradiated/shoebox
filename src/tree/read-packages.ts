@@ -25,18 +25,18 @@ const readPackages = mem(async (directory: string): Promise<PackageMap> => {
 
         const body = await fs.readFile(filepath, 'utf8')
 
-        const rawPkg = parseTOML(body) as unknown
-        const result = $Package.safeParse(rawPkg)
+        const rawPackage = parseTOML(body) as unknown
+        const result = $Package.safeParse(rawPackage)
         if (!result.success) {
           throw new InvalidPackageError(result.error.message, filepath)
         }
 
-        const pkg = result.data
+        const package_ = result.data
 
-        packageMap.set(pkg.name, {
+        packageMap.set(package_.name, {
           filepath,
           content: body,
-          package: pkg,
+          package: package_,
         })
       } catch (error) {
         if (error instanceof InvalidPackageError) {

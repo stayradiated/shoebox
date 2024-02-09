@@ -8,14 +8,14 @@ const squashCopyExports = (options: {
 
   return exports.flatMap(({ user, exports }) => {
     return exports.map(({ baseExportDir }) => {
-      const src = baseExportDir.endsWith('/')
+      const source = baseExportDir.endsWith('/')
         ? baseExportDir
         : baseExportDir + '/'
 
       return {
         from,
         chown: user,
-        src: [src],
+        src: [source],
         dest: '/',
       }
     })

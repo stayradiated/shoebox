@@ -16,7 +16,7 @@ export type PackageMap = Map<string, PackageInfo>
 export type PackageResolver = (name: string) => Package
 
 export type DependencyResolver = (
-  pkg: Package,
+  package_: Package,
   resolvePackage: PackageResolver,
 ) => Package[]
 
@@ -28,11 +28,11 @@ export type Export = {
   }>
 }
 
-export type ExportsResolver = (pkg: Package) => Export[]
+export type ExportsResolver = (package_: Package) => Export[]
 
-export type UserResolver = (pkg: Package) => string
+export type UserResolver = (package_: Package) => string
 
-export type BaseExportDirResolver = (pkg: Package) => string
+export type BaseExportDirResolver = (package_: Package) => string
 
 export type CopyOptions = {
   from?: string

@@ -20,13 +20,13 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
 
   const packageMap = await readPackages('.')
   const resolvePackage = createPackageResolver(packageMap)
-  const pkg = resolvePackage(packageName)
+  const package_ = resolvePackage(packageName)
 
-  let pkgList = [pkg]
+  let packageList = [package_]
 
   if (recursive) {
     const tree = resolveDependencyTree(
-      pkg,
+      package_,
       composeResolvers(
         resolveFrom,
         resolveDevDependencies,
@@ -34,36 +34,36 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
       ),
       resolvePackage,
     )
-    pkgList = [...tree.nodes()]
+    packageList = [...tree.nodes()]
   }
 
   await pMap(
-    pkgList,
-    async (pkg) => {
-      const result = await checkPackageUpdates({ pkg })
+    packageList,
+    async (package_) => {
+      const result = await checkPackageUpdates({ pkg: package_ })
       if (!result) {
         return
       }
 
       const { latestVersion } = result
-      const shouldUpdate = pkg.version !== latestVersion
+      const shouldUpdate = package_.version !== latestVersion
 
       if (shouldUpdate) {
-        console.log(`\n⏫ ${pkg.name} can be upgraded:
-   ${pkg.version}
+        console.log(`\n⏫ ${package_.name} can be upgraded:
+   ${package_.version}
 -> ${latestVersion}`)
 
         if (upgrade) {
-          const packageInfo = packageMap.get(pkg.name)
+          const packageInfo = packageMap.get(package_.name)
           if (!packageInfo) {
-            throw new Error(`Package info not found for ${pkg.name}`)
+            throw new Error(`Package info not found for ${package_.name}`)
           }
 
           await writePackageVersion(packageInfo, latestVersion)
         }
       } else {
-        console.log(`\n✅ ${pkg.name} is up to date:
--> ${pkg.version}`)
+        console.log(`\n✅ ${package_.name} is up to date:
+-> ${package_.version}`)
       }
     },
     {

@@ -2,19 +2,19 @@ import mem from 'mem'
 import type { DependencyResolver, Package, PackageResolver } from '../types.js'
 
 const resolveFrom: DependencyResolver = mem(
-  (pkg: Package, resolvePackage: PackageResolver): Package[] => {
-    if (pkg == null) {
+  (package_: Package, resolvePackage: PackageResolver): Package[] => {
+    if (package_ == null) {
       return []
     }
 
-    if (pkg.from == null) {
+    if (package_.from == null) {
       return []
     }
 
-    return [resolvePackage(pkg.from)]
+    return [resolvePackage(package_.from)]
   },
   {
-    cacheKey: ([pkg]) => pkg.name,
+    cacheKey: ([package_]) => package_.name,
   },
 )
 

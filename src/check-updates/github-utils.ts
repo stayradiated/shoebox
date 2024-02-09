@@ -18,8 +18,8 @@ const queue = new PQueue({
   interval: 1000,
 })
 
-const githubRateLimit = async <T>(fn: () => Promise<T>): Promise<T> => {
-  return queue.add(async () => fn(), {
+const githubRateLimit = async <T>(function_: () => Promise<T>): Promise<T> => {
+  return queue.add(async () => function_(), {
     // Fixes typescript error with queue.add possibly returning void
     throwOnTimeout: true,
   })

@@ -8,13 +8,13 @@ import type {
 import { buildDependencyGraph } from './build-dependency-graph.js'
 
 const resolveDependencyTree = (
-  pkg: Package,
+  package_: Package,
   getDependencies: DependencyResolver,
   resolvePackage: PackageResolver,
 ): PackageTree => {
   const graph = new DGraph<Package>()
   buildDependencyGraph({
-    package: pkg,
+    package: package_,
     getDependencies,
     resolvePackage,
     graph,

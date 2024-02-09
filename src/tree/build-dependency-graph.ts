@@ -11,13 +11,13 @@ type BuildDependencyGraphOptions = {
 const buildDependencyGraph = (
   options: BuildDependencyGraphOptions,
 ): DGraph<Package> => {
-  const { package: pkg, getDependencies, resolvePackage, graph } = options
+  const { package: package_, getDependencies, resolvePackage, graph } = options
 
-  graph.addNode(pkg)
+  graph.addNode(package_)
 
-  const dependencies = getDependencies(pkg, resolvePackage)
+  const dependencies = getDependencies(package_, resolvePackage)
   for (const dependency of dependencies) {
-    graph.addDependency(pkg, dependency)
+    graph.addDependency(package_, dependency)
     buildDependencyGraph({
       package: dependency,
       getDependencies,

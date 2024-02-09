@@ -7,13 +7,13 @@ const createUserResolver = (options: {
   const { resolvePackage } = options
 
   const resolveUser: UserResolver = mem(
-    (pkg: Package): string => {
-      if (pkg.user != null) {
-        return pkg.user
+    (package_: Package): string => {
+      if (package_.user != null) {
+        return package_.user
       }
 
-      if (pkg.from != null) {
-        const parent = resolvePackage(pkg.from)
+      if (package_.from != null) {
+        const parent = resolvePackage(package_.from)
         const user = resolveUser(parent)
         if (user != null) {
           return user
@@ -23,7 +23,7 @@ const createUserResolver = (options: {
       return ''
     },
     {
-      cacheKey: ([pkg]) => pkg.name,
+      cacheKey: ([package_]) => package_.name,
     },
   )
   return resolveUser

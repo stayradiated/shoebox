@@ -12,7 +12,7 @@ const getVersion = async (name: string): Promise<string> => {
   return version
 }
 
-const templateFn: TemplateFn = async (options) => {
+const templateFunction: TemplateFn = async (options) => {
   const { name } = options
   const version = await getVersion(name)
 
@@ -26,4 +26,4 @@ const templateFn: TemplateFn = async (options) => {
   }
 }
 
-export default templateFn
+export default templateFunction

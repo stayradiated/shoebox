@@ -50,6 +50,12 @@ const $CheckUpdates = z.discriminatedUnion('type', [
       path: z.array(z.string()),
     })
     .strict(),
+  z
+    .object({
+      type: z.literal('text'),
+      url: z.string(),
+    })
+    .strict(),
 ])
 
 const $Package = z.object({

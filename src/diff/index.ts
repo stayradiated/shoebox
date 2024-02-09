@@ -30,10 +30,10 @@ const diff = async (options: DiffOptions) => {
 
   const packageMap = await readPackages(packageDirectory)
   const resolvePackage = createPackageResolver(packageMap)
-  const pkg = resolvePackage(packageName)
+  const package_ = resolvePackage(packageName)
 
   const tree = resolveDependencyTree(
-    pkg,
+    package_,
     composeResolvers(resolveFrom, resolveDevDependencies, resolveDependencies),
     resolvePackage,
   )
@@ -49,7 +49,7 @@ const diff = async (options: DiffOptions) => {
   })
 
   // Wipe build command
-  pkg.build = ''
+  package_.build = ''
   const tagWithoutBuildCmd = localTag(`${packageName}-base`)
 
   await build({
@@ -66,7 +66,7 @@ const diff = async (options: DiffOptions) => {
     expand,
   })
 
-  const exclude = excludeOverride ?? pkg.diff?.exclude ?? []
+  const exclude = excludeOverride ?? package_.diff?.exclude ?? []
   if (exclude == null || exclude.length === 0) {
     return result
   }

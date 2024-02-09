@@ -1,6 +1,7 @@
 import type { Package } from '../types.js'
 import { checkUpdatesApt } from './check-updates-apt.js'
 import { checkUpdatesJson } from './check-updates-json.js'
+import { checkUpdatesText } from './check-updates-text.js'
 import { checkUpdatesGithubCommit } from './check-updates-github-commit.js'
 import { checkUpdatesGithubRelease } from './check-updates-github-release.js'
 import { checkUpdatesGithubTag } from './check-updates-github-tag.js'
@@ -61,6 +62,11 @@ const checkUpdates = async (
 
     case 'json': {
       latestVersion = await checkUpdatesJson(pkg.checkUpdates)
+      break
+    }
+
+    case 'text': {
+      latestVersion = await checkUpdatesText(pkg.checkUpdates)
       break
     }
 

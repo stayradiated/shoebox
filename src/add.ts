@@ -1,5 +1,4 @@
-import { stringify } from '@iarna/toml'
-import type { JsonMap } from '@iarna/toml'
+import { stringify, type JsonMap } from '@iarna/toml'
 import * as untypedTemplates from './add/index.js'
 import type { TemplateFn } from './add/types.js'
 

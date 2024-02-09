@@ -11,23 +11,23 @@ const createBaseExportDirResolver = (options: {
   const { resolvePackage } = options
 
   const resolveBaseExportDir: BaseExportDirResolver = mem(
-    (pkg: Package): string => {
-      if (pkg.baseExportDir != null) {
-        return pkg.baseExportDir
+    (package_: Package): string => {
+      if (package_.baseExportDir != null) {
+        return package_.baseExportDir
       }
 
-      if (pkg.from != null) {
-        const parent = resolvePackage(pkg.from)
+      if (package_.from != null) {
+        const parent = resolvePackage(package_.from)
         const user = resolveBaseExportDir(parent)
         if (user != null) {
           return user
         }
       }
 
-      throw new Error(`Could not resolve baseExportDir for ${pkg.name}`)
+      throw new Error(`Could not resolve baseExportDir for ${package_.name}`)
     },
     {
-      cacheKey: ([pkg]) => pkg.name,
+      cacheKey: ([package_]) => package_.name,
     },
   )
   return resolveBaseExportDir

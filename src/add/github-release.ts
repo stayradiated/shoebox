@@ -6,7 +6,7 @@ export type Root = {
   releases: Record<string, unknown>
 }
 
-const templateFn: TemplateFn = async (options) => {
+const templateFunction: TemplateFn = async (options) => {
   const { name: url } = options
 
   const version = await checkUpdatesGithubRelease({ url })
@@ -33,4 +33,4 @@ rm -r '${repo}_{{VERSION}}_linux_amd64'
   }
 }
 
-export default templateFn
+export default templateFunction

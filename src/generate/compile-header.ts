@@ -1,7 +1,7 @@
 import type { Package } from '../types.js'
 
-const compileHeader = (pkg: Package): string[] => {
-  const { name, fromImage, from, user, workdir } = pkg
+const compileHeader = (package_: Package): string[] => {
+  const { name, fromImage, from, user, workdir } = package_
   const headers = [
     '\n',
     `# ${name.toUpperCase()}`,

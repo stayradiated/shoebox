@@ -53,9 +53,9 @@ const compileDependencies = (options: {
   if (pkg.mount != null) {
     lines.push(
       ...formatCopy(
-        pkg.mount.map(([src, dest]) => ({
-          src: [src],
-          dest,
+        pkg.mount.map(([source, destination]) => ({
+          src: [source],
+          dest: destination,
         })),
       ),
     )

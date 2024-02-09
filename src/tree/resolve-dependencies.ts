@@ -2,17 +2,17 @@ import mem from 'mem'
 import type { DependencyResolver, Package, PackageResolver } from '../types.js'
 
 const resolveDependencies: DependencyResolver = mem(
-  (pkg: Package, resolvePackage: PackageResolver): Package[] => {
-    if (pkg == null) {
+  (package_: Package, resolvePackage: PackageResolver): Package[] => {
+    if (package_ == null) {
       return []
     }
 
-    return (pkg.dependencies || []).map((dependencyName) => {
+    return (package_.dependencies || []).map((dependencyName) => {
       return resolvePackage(dependencyName)
     })
   },
   {
-    cacheKey: ([pkg]) => pkg.name,
+    cacheKey: ([package_]) => package_.name,
   },
 )
 

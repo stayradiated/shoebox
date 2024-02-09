@@ -1,7 +1,7 @@
 import type { Package } from '../types.js'
 
-const compileFooter = (pkg: Package): string[] => {
-  const { command } = pkg
+const compileFooter = (package_: Package): string[] => {
+  const { command } = package_
   const lines = [] as string[]
   if (command != null) {
     lines.push(`CMD ${command}`)

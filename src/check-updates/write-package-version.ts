@@ -6,11 +6,11 @@ const writePackageVersion = async (
   packageInfo: PackageInfo,
   version: string,
 ) => {
-  const { filepath, content, package: pkg } = packageInfo
-  const currentVersion = pkg.version
+  const { filepath, content, package: package_ } = packageInfo
+  const currentVersion = package_.version
 
   if (!currentVersion) {
-    throw new Error(`Could not find pkg.version for ${pkg.name}`)
+    throw new Error(`Could not find pkg.version for ${package_.name}`)
   }
 
   const escapedVersion = escapeStringRegexp(currentVersion)

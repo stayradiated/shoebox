@@ -24,15 +24,19 @@ const checkUpdatesJson = async (
     throw new Error(`Could not parse JSON from ${url}.\nError: ${error}`)
   }
 
-  const version = path.reduce<unknown>((acc, key) => {
-    if (typeof acc === 'object' && acc !== null && key in acc) {
-      const value = (acc as Record<string, unknown>)[key]
+  const version = path.reduce<unknown>((accumulator, key) => {
+    if (
+      typeof accumulator === 'object' &&
+      accumulator !== null &&
+      key in accumulator
+    ) {
+      const value = (accumulator as Record<string, unknown>)[key]
       return value
     }
 
     throw new Error(
       `Could not find key ${key} in ${JSON.stringify(
-        acc,
+        accumulator,
       )}. Path: ${JSON.stringify(path)}`,
     )
   }, body) as string
