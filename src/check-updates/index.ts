@@ -1,13 +1,13 @@
 import pMap from 'p-map'
-import { readPackages } from '../tree/read-packages.js'
-import { createPackageResolver } from '../tree/create-package-resolver.js'
-import { resolveDependencyTree } from '../tree/resolve-dependency-tree.js'
-import { composeResolvers } from '../tree/compose-resolvers.js'
-import { resolveFrom } from '../tree/resolve-from.js'
-import { resolveDependencies } from '../tree/resolve-dependencies.js'
-import { resolveDevDependencies } from '../tree/resolve-dev-dependencies.js'
-import { checkUpdates as checkPackageUpdates } from './check-updates.js'
-import { writePackageVersion } from './write-package-version.js'
+import { composeResolvers } from '../tree/compose-resolvers.ts'
+import { createPackageResolver } from '../tree/create-package-resolver.ts'
+import { readPackages } from '../tree/read-packages.ts'
+import { resolveDependencies } from '../tree/resolve-dependencies.ts'
+import { resolveDependencyTree } from '../tree/resolve-dependency-tree.ts'
+import { resolveDevDependencies } from '../tree/resolve-dev-dependencies.ts'
+import { resolveFrom } from '../tree/resolve-from.ts'
+import { checkUpdates as checkPackageUpdates } from './check-updates.ts'
+import { writePackageVersion } from './write-package-version.ts'
 
 type CheckUpdatesOptions = {
   packageName: string
@@ -49,7 +49,7 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
       const shouldUpdate = package_.version !== latestVersion
 
       if (shouldUpdate) {
-        console.log(`\n⏫ ${package_.name} can be upgraded:
+        console.info(`\n⏫ ${package_.name} can be upgraded:
    ${package_.version}
 -> ${latestVersion}`)
 
@@ -62,7 +62,7 @@ const checkUpdates = async (options: CheckUpdatesOptions) => {
           await writePackageVersion(packageInfo, latestVersion)
         }
       } else {
-        console.log(`\n✅ ${package_.name} is up to date:
+        console.info(`\n✅ ${package_.name} is up to date:
 -> ${package_.version}`)
       }
     },

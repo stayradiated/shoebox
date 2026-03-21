@@ -1,30 +1,24 @@
 {
-  "__comment": "This typescipt config is managed by `@stayradiated/jsconfig`",
   "compilerOptions": {
+    "noEmit": true,
     "outDir": "dist",
-    "module": "Node16",
-    "moduleResolution": "Node16",
+    "rootDir": ".",
+    "lib": ["ESNext"],
+    "target": "ESNext",
+    "module": "ESNext",
     "moduleDetection": "force",
-    "target": "ES2022",
-    "lib": ["ES2022"],
-    "allowSyntheticDefaultImports": true,
-    "resolveJsonModule": false,
-    "jsx": "react",
-    "declaration": true,
-    "pretty": true,
-    "newLine": "lf",
-    "stripInternal": true,
+    "moduleResolution": "bundler",
+    "verbatimModuleSyntax": true,
     "strict": true,
-    "noImplicitReturns": true,
-    "noImplicitOverride": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "noEmitOnError": false,
-    "useDefineForClassFields": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
-  }
+    "types": ["node"],
+    "paths": {
+      "#src/*": ["./src/*"]
+    }
+  },
+  "exclude": ["dist", "node_modules"]
 }

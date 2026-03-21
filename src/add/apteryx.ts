@@ -1,5 +1,5 @@
 import { execa } from 'execa'
-import type { TemplateFn } from './types.js'
+import type { TemplateFn } from './types.ts'
 
 const getVersion = async (name: string): Promise<string> => {
   const { stdout } = await execa('apt-cache', ['show', name])

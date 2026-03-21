@@ -1,5 +1,5 @@
-import type { PackageTree, PackageResolver } from '../types.js'
-import { build } from './build.js'
+import type { PackageResolver, PackageTree } from '#src/types.ts'
+import { build } from './build.ts'
 
 type BuildAllOptions = {
   tree: PackageTree

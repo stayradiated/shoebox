@@ -1,10 +1,6 @@
-import { checkUpdatesGithubRelease } from '../check-updates/check-updates-github-release.js'
-import { parseGithubUrl } from '../check-updates/github-utils.js'
-import type { TemplateFn } from './types.js'
-
-export type Root = {
-  releases: Record<string, unknown>
-}
+import { checkUpdatesGithubRelease } from '../check-updates/check-updates-github-release.ts'
+import { parseGithubUrl } from '../check-updates/github-utils.ts'
+import type { TemplateFn } from './types.ts'
 
 const templateFunction: TemplateFn = async (options) => {
   const { name: url } = options

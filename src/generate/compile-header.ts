@@ -1,4 +1,4 @@
-import type { Package } from '../types.js'
+import type { Package } from '#src/types.ts'
 
 const compileHeader = (package_: Package): string[] => {
   const { name, fromImage, from, user, workdir } = package_

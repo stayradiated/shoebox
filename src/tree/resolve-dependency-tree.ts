@@ -4,8 +4,8 @@ import type {
   Package,
   PackageResolver,
   PackageTree,
-} from '../types.js'
-import { buildDependencyGraph } from './build-dependency-graph.js'
+} from '#src/types.ts'
+import { buildDependencyGraph } from './build-dependency-graph.ts'
 
 const resolveDependencyTree = (
   package_: Package,

@@ -1,14 +1,14 @@
-import undici from 'undici'
 import flexver from 'flexver'
-import type { TemplateFn } from './types.js'
+import undici from 'undici'
+import type { TemplateFn } from './types.ts'
 
-export type Root = {
+type Response = {
   releases: Record<string, unknown>
 }
 
 const getVersion = async (name: string): Promise<string> => {
   const response = await undici.fetch(`https://pypi.org/pypi/${name}/json`)
-  const result = (await response.json()) as Root
+  const result = (await response.json()) as Response
   const versions = Object.keys(result.releases).sort(flexver).reverse()
   const latestVersion = versions[0]
   return latestVersion ?? '?.?.?'

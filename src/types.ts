@@ -1,6 +1,6 @@
-import type { z } from 'zod'
 import type { DGraph } from '@thi.ng/dgraph'
-import type { $Package } from './schema.js'
+import type { z } from 'zod'
+import type { $Package } from './schema.ts'
 
 export type Package = z.infer<typeof $Package>
 

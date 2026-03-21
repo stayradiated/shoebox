@@ -1,7 +1,7 @@
-import { Headers } from 'undici'
 import PQueue from 'p-queue'
+import { Headers } from 'undici'
 
-const githubToken = process.env['GH_TOKEN']
+const githubToken = process.env.GH_TOKEN
 
 const githubHeaders = new Headers({
   Accept: 'application/vnd.github+json',
@@ -18,11 +18,8 @@ const queue = new PQueue({
   interval: 1000,
 })
 
-const githubRateLimit = async <T>(function_: () => Promise<T>): Promise<T> => {
-  return queue.add(async () => function_(), {
-    // Fixes typescript error with queue.add possibly returning void
-    throwOnTimeout: true,
-  })
+const githubRateLimit = async <T>(callback: () => Promise<T>): Promise<T> => {
+  return queue.add(async () => callback())
 }
 
 type GithubUrl = {

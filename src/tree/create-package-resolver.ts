@@ -1,5 +1,5 @@
 import mem from 'mem'
-import type { Package, PackageMap, PackageResolver } from '../types.js'
+import type { Package, PackageMap, PackageResolver } from '#src/types.ts'
 
 const createPackageResolver = (packageMap: PackageMap): PackageResolver => {
   return mem((name: string): Package => {

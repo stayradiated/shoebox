@@ -26,7 +26,7 @@ const containerDiff = async (
 ): Promise<string[]> => {
   const { tagA, tagB, expand } = options
 
-  console.log(
+  console.info(
     `container-diff diff daemon://${tagA} daemon://${tagB} --type=file --json`,
   )
 
@@ -86,9 +86,9 @@ const containerDiff = async (
     }
 
     for (const path of known.files) {
-      if (filepath.startsWith(path + '/')) {
+      if (filepath.startsWith(`${path}/`)) {
         known.files.delete(path)
-        known.directories.add(path + '/')
+        known.directories.add(`${path}/`)
         return
       }
     }

@@ -1,57 +1,50 @@
 {
   "name": "@stayradiated/shoebox",
-  "version": "2.8.0",
-  "main": "index.js",
+  "version": "3.0.0",
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "rm -rf ./dist && tsc",
-    "tidy": "xo --fix",
-    "start": "node ./dist/index.js"
+    "check": "tsc -noEmit",
+    "knip": "knip",
+    "lint": "biome check",
+    "fix": "biome check --write",
+    "start": "node ./src/index.ts"
+  },
+  "imports": {
+    "#src/*": "./src/*"
   },
   "dependencies": {
     "@iarna/toml": "2.2.5",
-    "@thi.ng/dgraph": "2.1.94",
-    "chalk": "5.3.0",
+    "@thi.ng/dgraph": "2.1.199",
+    "chalk": "5.6.2",
     "escape-string-regexp": "5.0.0",
-    "execa": "8.0.1",
+    "execa": "9.6.1",
     "flexver": "1.1.1",
     "handlebars": "4.7.8",
-    "mem": "9.0.2",
-    "multimatch": "7.0.0",
-    "p-map": "7.0.1",
-    "p-queue": "8.0.1",
-    "tempy": "3.1.0",
-    "undici": "6.6.2",
+    "mem": "10.0.0",
+    "multimatch": "8.0.0",
+    "p-map": "7.0.4",
+    "p-queue": "9.1.0",
+    "tempy": "3.2.0",
+    "undici": "7.24.5",
     "walkdir": "0.4.1",
-    "yargs": "17.7.2",
-    "zod": "3.22.4"
+    "yargs": "18.0.0",
+    "zod": "4.3.6"
   },
   "devDependencies": {
-    "@types/node": "20.11.17",
-    "@types/yargs": "17.0.32",
-    "typescript": "5.3.3",
-    "xo": "0.57.0"
+    "@biomejs/biome": "2.4.8",
+    "@types/node": "25.5.0",
+    "@types/yargs": "17.0.35",
+    "knip": "6.0.1",
+    "typescript": "5.9.3"
   },
   "bin": {
     "shoebox": "./bin/shoebox"
   },
-  "__comment": "The following configs are managed by `@stayradiated/jsconfig`",
-  "xo": {
-    "space": true,
-    "semicolon": false,
-    "prettier": true,
-    "rules": {
-      "n/file-extension-in-import": "off"
-    }
-  },
-  "prettier": {
-    "arrowParens": "always",
-    "bracketSpacing": true,
-    "semi": false,
-    "singleQuote": true,
-    "tabWidth": 2,
-    "trailingComma": "all",
-    "useTabs": false
+  "knip": {
+    "ignoreBinaries": [
+      "apt-cache",
+      "container-diff"
+    ]
   }
 }

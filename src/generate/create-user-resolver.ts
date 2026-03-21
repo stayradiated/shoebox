@@ -1,5 +1,5 @@
 import mem from 'mem'
-import type { Package, PackageResolver, UserResolver } from '../types.js'
+import type { Package, PackageResolver, UserResolver } from '#src/types.ts'
 
 const createUserResolver = (options: {
   resolvePackage: PackageResolver

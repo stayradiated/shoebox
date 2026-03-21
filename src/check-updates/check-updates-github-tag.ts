@@ -1,11 +1,11 @@
+import flexver from 'flexver'
 import { fetch } from 'undici'
 import { z } from 'zod'
-import flexver from 'flexver'
 import {
   githubHeaders,
   githubRateLimit,
   parseGithubUrl,
-} from './github-utils.js'
+} from './github-utils.ts'
 
 const $Response = z.array(
   z.object({
@@ -35,7 +35,7 @@ const checkUpdatesGithubTag = async (
   })
   const bodyResult = $Response.safeParse(rawBody)
   if (!bodyResult.success) {
-    console.log(
+    console.info(
       `${tagsUrl}\n${JSON.stringify(
         Object.fromEntries(githubHeaders.entries()),
         null,

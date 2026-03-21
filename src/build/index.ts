@@ -1,3 +1,3 @@
-export * from './build-from-dir.js'
-export * from './build.js'
-export * from './local-tag.js'
+export * from './build.ts'
+export * from './build-from-dir.ts'
+export * from './local-tag.ts'

@@ -1,3 +1,3 @@
-import type { Package } from '../types.js'
+import type { Package } from '#src/types.ts'
 
 export type TemplateFn = (options: { name: string }) => Promise<Package>

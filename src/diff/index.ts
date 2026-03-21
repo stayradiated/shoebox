@@ -1,13 +1,13 @@
-import { build, localTag } from '../build/index.js'
-import { readPackages } from '../tree/read-packages.js'
-import { resolveDependencyTree } from '../tree/resolve-dependency-tree.js'
-import { composeResolvers } from '../tree/compose-resolvers.js'
-import { resolveFrom } from '../tree/resolve-from.js'
-import { resolveDevDependencies } from '../tree/resolve-dev-dependencies.js'
-import { resolveDependencies } from '../tree/resolve-dependencies.js'
-import { createPackageResolver } from '../tree/create-package-resolver.js'
-import { removeGlobs } from './remove-globs.js'
-import { containerDiff } from './container-diff.js'
+import { build, localTag } from '../build/index.ts'
+import { composeResolvers } from '../tree/compose-resolvers.ts'
+import { createPackageResolver } from '../tree/create-package-resolver.ts'
+import { readPackages } from '../tree/read-packages.ts'
+import { resolveDependencies } from '../tree/resolve-dependencies.ts'
+import { resolveDependencyTree } from '../tree/resolve-dependency-tree.ts'
+import { resolveDevDependencies } from '../tree/resolve-dev-dependencies.ts'
+import { resolveFrom } from '../tree/resolve-from.ts'
+import { containerDiff } from './container-diff.ts'
+import { removeGlobs } from './remove-globs.ts'
 
 type DiffOptions = {
   packageName: string

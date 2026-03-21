@@ -1,4 +1,4 @@
-import type { Package } from '../types.js'
+import type { Package } from '#src/types.ts'
 
 const compileFooter = (package_: Package): string[] => {
   const { command } = package_

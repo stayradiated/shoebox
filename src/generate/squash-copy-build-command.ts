@@ -1,6 +1,6 @@
 import { dirname, join } from 'node:path'
-import type { Export } from '../types.js'
-import { compileTemplate } from './compile-template.js'
+import type { Export } from '#src/types.ts'
+import { compileTemplate } from './compile-template.ts'
 
 const squashCopyBuildCommand = (options: {
   initialUser: string
@@ -16,7 +16,7 @@ const squashCopyBuildCommand = (options: {
     const commands = exports.flatMap(({ baseExportDir, filePaths }) => {
       const actions = [] as Array<{ src: string[]; dest: string }>
       for (const sourceFilePath of filePaths) {
-        const destination = dirname(sourceFilePath) + '/'
+        const destination = `${dirname(sourceFilePath)}/`
         const source = sourceFilePath.replace(/\/\s*$/, '')
         const existingAction = actions.find(
           (action) => action.dest === destination,

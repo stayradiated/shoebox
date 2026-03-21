@@ -1,4 +1,4 @@
-import type { CopyOptions, Export } from '../types.js'
+import type { CopyOptions, Export } from '#src/types.ts'
 
 const squashCopyExports = (options: {
   from: string
@@ -10,7 +10,7 @@ const squashCopyExports = (options: {
     return exports.map(({ baseExportDir }) => {
       const source = baseExportDir.endsWith('/')
         ? baseExportDir
-        : baseExportDir + '/'
+        : `${baseExportDir}/`
 
       return {
         from,

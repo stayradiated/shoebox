@@ -1,5 +1,5 @@
-import type { Package } from '../types.js'
-import { compileTemplate } from './compile-template.js'
+import type { Package } from '#src/types.ts'
+import { compileTemplate } from './compile-template.ts'
 
 const compileRunCommands = (package_: Package): string[] => {
   if (package_.build == null) {

@@ -4,7 +4,7 @@ import {
   githubHeaders,
   githubRateLimit,
   parseGithubUrl,
-} from './github-utils.js'
+} from './github-utils.ts'
 
 const $Response = z.array(
   z.object({

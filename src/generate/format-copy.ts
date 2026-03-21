@@ -1,4 +1,4 @@
-import type { CopyOptions } from '../types.js'
+import type { CopyOptions } from '#src/types.ts'
 
 const formatCopy = (actions: CopyOptions[]): string[] => {
   return actions.map((action) => {

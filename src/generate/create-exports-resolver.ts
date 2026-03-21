@@ -1,13 +1,13 @@
 import mem from 'mem'
 import type {
+  BaseExportDirResolver,
   Export,
   ExportsResolver,
   Package,
   PackageResolver,
   UserResolver,
-  BaseExportDirResolver,
-} from '../types.js'
-import { appendExports } from './append-exports.js'
+} from '#src/types.ts'
+import { appendExports } from './append-exports.ts'
 
 const createExportsResolver = (options: {
   resolvePackage: PackageResolver
@@ -33,7 +33,7 @@ const createExportsResolver = (options: {
       }
 
       if (package_.dependencies != null) {
-        package_.dependencies.map((dependencyName) => {
+        package_.dependencies.forEach((dependencyName) => {
           const dependency = resolvePackage(dependencyName)
           appendExports(exports, resolveExports(dependency))
         })

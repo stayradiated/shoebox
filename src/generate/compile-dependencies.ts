@@ -1,7 +1,7 @@
-import type { Package, PackageResolver, ExportsResolver } from '../types.js'
-import { formatCopy } from './format-copy.js'
-import { squashCopyExports } from './squash-copy-exports.js'
-import { compileTemplate } from './compile-template.js'
+import type { ExportsResolver, Package, PackageResolver } from '#src/types.ts'
+import { compileTemplate } from './compile-template.ts'
+import { formatCopy } from './format-copy.ts'
+import { squashCopyExports } from './squash-copy-exports.ts'
 
 const compileDependencies = (options: {
   pkg: Package
@@ -41,7 +41,7 @@ const compileDependencies = (options: {
     if (exportEnv && exportEnv.length > 0) {
       const env = exportEnv
         .map(([key, value]) => {
-          return `${key}=${value.replaceAll(/\s/g, '\\ ')}`
+          return `${key}=${value.replaceAll(/\s/g, String.raw`\ `)}`
         })
         .join(' \\\n  ')
       exportEnvLines.push(`ENV \\\n  ${env}`)

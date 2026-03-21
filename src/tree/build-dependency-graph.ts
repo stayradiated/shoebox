@@ -1,5 +1,9 @@
 import type { DGraph } from '@thi.ng/dgraph'
-import type { Package, DependencyResolver, PackageResolver } from '../types.js'
+import type {
+  DependencyResolver,
+  Package,
+  PackageResolver,
+} from '#src/types.ts'
 
 type BuildDependencyGraphOptions = {
   package: Package

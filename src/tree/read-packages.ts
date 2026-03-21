@@ -1,11 +1,11 @@
 import { promises as fs } from 'node:fs'
-import walk from 'walkdir'
-import mem from 'mem'
 import { parse as parseTOML } from '@iarna/toml'
 import chalk from 'chalk'
-import type { PackageMap } from '../types.js'
-import { $Package } from '../schema.js'
-import { InvalidPackageError } from './errors.js'
+import mem from 'mem'
+import walk from 'walkdir'
+import { $Package } from '#src/schema.ts'
+import type { PackageMap } from '#src/types.ts'
+import { InvalidPackageError } from './errors.ts'
 
 const readPackages = mem(async (directory: string): Promise<PackageMap> => {
   const files = await walk.async(directory, {

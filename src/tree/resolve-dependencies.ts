@@ -1,5 +1,9 @@
 import mem from 'mem'
-import type { DependencyResolver, Package, PackageResolver } from '../types.js'
+import type {
+  DependencyResolver,
+  Package,
+  PackageResolver,
+} from '#src/types.ts'
 
 const resolveDependencies: DependencyResolver = mem(
   (package_: Package, resolvePackage: PackageResolver): Package[] => {

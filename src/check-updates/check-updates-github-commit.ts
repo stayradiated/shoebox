@@ -4,7 +4,7 @@ import {
   githubHeaders,
   githubRateLimit,
   parseGithubUrl,
-} from './github-utils.js'
+} from './github-utils.ts'
 
 const $LatestCommitResponse = z.array(
   z.object({
@@ -30,7 +30,12 @@ const checkUpdatesGithubCommit = async (
     })
     return response.json()
   })
-  const body = $LatestCommitResponse.parse(rawBody)
+  const $body = $LatestCommitResponse.safeParse(rawBody)
+  if (!$body.success) {
+    throw new Error(`Failed to parse response from ${latestCommitUrl}`)
+  }
+
+  const body = $body.data
 
   const latestCommit = body[0]
   if (!latestCommit) {

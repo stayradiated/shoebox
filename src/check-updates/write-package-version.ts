@@ -1,6 +1,6 @@
 import * as fs from 'node:fs/promises'
 import escapeStringRegexp from 'escape-string-regexp'
-import type { PackageInfo } from '../types.js'
+import type { PackageInfo } from '#src/types.ts'
 
 const writePackageVersion = async (
   packageInfo: PackageInfo,
@@ -15,7 +15,10 @@ const writePackageVersion = async (
 
   const escapedVersion = escapeStringRegexp(currentVersion)
 
-  const regex = new RegExp(`^version\\s*=\\s*['"]${escapedVersion}['"]`, 'm')
+  const regex = new RegExp(
+    String.raw`^version\s*=\s*['"]${escapedVersion}['"]`,
+    'm',
+  )
   if (!regex.test(content)) {
     throw new Error(
       `Could not find version = "${currentVersion}" in ${filepath}`,

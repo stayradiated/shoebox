@@ -20,7 +20,7 @@ const checkUpdatesJson = async (
   try {
     body = JSON.parse(bodyJSON)
   } catch (error: unknown) {
-    console.log(`----\n${bodyJSON}\n----`)
+    console.info(`----\n${bodyJSON}\n----`)
     throw new Error(`Could not parse JSON from ${url}.\nError: ${error}`)
   }
 

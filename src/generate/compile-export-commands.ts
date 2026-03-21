@@ -1,5 +1,5 @@
-import type { Package, UserResolver, ExportsResolver } from '../types.js'
-import { squashCopyBuildCommand } from './squash-copy-build-command.js'
+import type { ExportsResolver, Package, UserResolver } from '#src/types.ts'
+import { squashCopyBuildCommand } from './squash-copy-build-command.ts'
 
 const compileExportCommands = (options: {
   pkg: Package

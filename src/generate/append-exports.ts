@@ -1,4 +1,4 @@
-import type { Export } from '../types.js'
+import type { Export } from '#src/types.ts'
 
 const appendExports = (a: Export[], b: Export[]): Export[] => {
   for (const b1 of b) {

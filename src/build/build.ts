@@ -1,9 +1,9 @@
 import { promises as fs } from 'node:fs'
 import * as pathUtils from 'node:path'
 import { temporaryDirectory } from 'tempy'
-import * as generate from '../generate.js'
-import type { PackageTree, PackageResolver } from '../types.js'
-import { dockerBuild } from './docker-build.js'
+import * as generate from '#src/generate.ts'
+import type { PackageResolver, PackageTree } from '#src/types.ts'
+import { dockerBuild } from './docker-build.ts'
 
 type BuildOptions = {
   tree: PackageTree

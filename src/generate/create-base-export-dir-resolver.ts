@@ -1,9 +1,9 @@
 import mem from 'mem'
 import type {
+  BaseExportDirResolver,
   Package,
   PackageResolver,
-  BaseExportDirResolver,
-} from '../types.js'
+} from '#src/types.ts'
 
 const createBaseExportDirResolver = (options: {
   resolvePackage: PackageResolver

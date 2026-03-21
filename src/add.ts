@@ -1,8 +1,6 @@
-import { stringify, type JsonMap } from '@iarna/toml'
-import * as untypedTemplates from './add/index.js'
-import type { TemplateFn } from './add/types.js'
-
-const templates = untypedTemplates as Record<string, TemplateFn>
+import type { JsonMap } from '@iarna/toml'
+import { stringify } from '@iarna/toml'
+import { templates } from './add/index.ts'
 
 type AddOptions = {
   name: keyof typeof templates
@@ -17,7 +15,7 @@ const add = async (options: AddOptions) => {
   }
 
   const body = await template({ name })
-  console.log(stringify(body as unknown as JsonMap))
+  console.info(stringify(body as unknown as JsonMap))
 }
 
 export default add
