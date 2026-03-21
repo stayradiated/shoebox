@@ -20,12 +20,20 @@ type CheckUpdatesGithubReleaseOptions = {
   matchName?: string
   removePrefix?: string
   matchPrerelease?: boolean
+  ignoreVersions?: string[]
 }
 
 const checkUpdatesGithubRelease = async (
   options: CheckUpdatesGithubReleaseOptions,
 ): Promise<string> => {
-  const { url, matchTag, matchName, removePrefix, matchPrerelease } = options
+  const {
+    url,
+    matchTag,
+    matchName,
+    removePrefix,
+    matchPrerelease,
+    ignoreVersions = [],
+  } = options
 
   const { owner, repo } = parseGithubUrl(url)
 
@@ -55,7 +63,8 @@ const checkUpdatesGithubRelease = async (
       (!matchNameRegex ||
         (release.name && matchNameRegex.test(release.name))) &&
       (typeof matchPrerelease !== 'boolean' ||
-        matchPrerelease === release.prerelease)
+        matchPrerelease === release.prerelease) &&
+      ignoreVersions.includes(release.tag_name) === false
     )
   })
   if (!latestReleaseWithTag?.tag_name) {

@@ -15,6 +15,7 @@ const $CheckUpdates = z.discriminatedUnion('type', [
       matchName: z.string().optional(),
       matchPrerelease: z.boolean().optional(),
       removePrefix: z.string().optional(),
+      ignoreVersions: z.array(z.string()).optional(),
     })
     .strict(),
   z
@@ -41,6 +42,7 @@ const $CheckUpdates = z.discriminatedUnion('type', [
     .object({
       type: z.literal('apt'),
       name: z.string(),
+      ignoreVersions: z.array(z.string()).optional(),
     })
     .strict(),
   z

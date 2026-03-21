@@ -2,10 +2,11 @@ import { execa } from 'execa'
 
 type CheckUpdatesAptOptions = {
   name: string
+  ignoreVersions?: string[]
 }
 
 const checkUpdatesApt = async (options: CheckUpdatesAptOptions) => {
-  const { name } = options
+  const { name, ignoreVersions = [] } = options
 
   const { stdout } = await execa('apt-cache', ['madison', name])
 
@@ -22,6 +23,10 @@ const checkUpdatesApt = async (options: CheckUpdatesAptOptions) => {
     })
     .filter((version): version is string => {
       return version !== undefined
+    })
+    .filter((version) => {
+      const isIgnored = ignoreVersions.includes(version)
+      return isIgnored === false
     })
 
   const versionList = [...new Set(versionListWithDuplicates)]
