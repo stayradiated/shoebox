@@ -21,7 +21,7 @@
     "escape-string-regexp": "5.0.0",
     "execa": "9.6.1",
     "flexver": "1.1.1",
-    "handlebars": "4.7.8",
+    "handlebars": "4.7.9",
     "mem": "10.0.0",
     "multimatch": "8.0.0",
     "p-map": "7.0.4",
